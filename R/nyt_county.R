@@ -6,8 +6,11 @@ library(stringr)
 library(raster)
 library(tidycensus)
 
-# load usafacts data
-cv_dat = read.csv('https://usafactsstatic.blob.core.windows.net/public/data/covid-19/covid_confirmed_usafacts.csv')
+# load NYT County data
+cv_dat = read.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv') %>%
+  mutate(state = ifelse(state %in% state.name,
+                        state.abb[match(state, state.name)],
+                        state))
 
 #get geodata for US municipalities
 if(file.exists("data/US.zip")){} else{
@@ -15,8 +18,8 @@ if(file.exists("data/US.zip")){} else{
   system('unzip data/US.zip -d data')
 }
 US = data.table::fread('data/US.txt')
-colnames(US)[2] = 'County.Name'
-colnames(US)[11] = 'State'
+colnames(US)[2] = 'county'
+colnames(US)[11] = 'state'
 head(US)
 
 # get population data w/tidycensus
@@ -24,29 +27,26 @@ census_api_key('3eef6660d69eefaca172cd41c483f746ecd6c287', overwrite = T, instal
 readRenviron("~/.Renviron")
 #v18 <- load_variables(2018, "acs5", cache = TRUE)
 popCounty<- get_decennial(geography = "county", year = 2010, 
-                             variables = "P001001")  %>%  
-    mutate(State=unlist(lapply(strsplit(NAME,", "),function(x) x[2])),
-                        County.Name=gsub(",.*","",NAME)) %>%
-    mutate(State = ifelse(State %in% state.name,
-                                 state.abb[match(State, state.name)],
-                                 State))
+                          variables = "P001001")  %>%  
+  mutate(state=unlist(lapply(strsplit(NAME,", "),function(x) x[2])),
+         county=gsub(",.*","",NAME)) %>%
+  mutate(county=unlist(lapply(strsplit(county," "),function(x) x[1]))) %>%
+  mutate(state = ifelse(state %in% state.name,
+                        state.abb[match(state, state.name)],
+                        state))
 
 
 
 
 #join covid19 case records and geocoding by county name and state
 cv_new = cv_dat %>% 
-  left_join(US, by=c('County.Name', 'State')) %>%
-  left_join(popCounty, by = c('County.Name', 'State')) %>%
-  dplyr::select(countyFIPS, County.Name, State, stateFIPS, V5, V6, variable, value, grep('X', colnames(cv_dat), value=T)) %>%
+  left_join(US, by=c('county', 'state')) %>%
+  left_join(popCounty, by = c('county', 'state')) %>%
+  dplyr::select(date, county, state, fips, cases, deaths, variable, value, V5, V6 ) %>%
   mutate(cvar = variable) %>%
-  mutate(pop = value) %>%
-  melt(id.vars=c('County.Name', 'countyFIPS', 'State', 'stateFIPS', 'V5', 'V6', 'cvar', 'pop'), 
-       measure.vars = grep('X', colnames(cv_dat), value=T)
-  ) %>% 
-  mutate(variable=str_replace(variable, "X", "")) %>%
-  mutate(variable=as.Date(variable, "%m.%d.%y")) 
-
+  mutate(pop = value) %>% 
+  dplyr::select(date, county, state, fips, cases, deaths, cvar, pop, V5, V6 )
+  
 
 
 
@@ -85,8 +85,19 @@ march_clim = cl_stack[[grep("03", names(cl_stack))]]
 cv_ex = extract(march_clim, cv_new[,c('V6', 'V5')], method='bilinear' )
 cv_ex = cbind(cv_new, cv_ex)
 #plot
-ggplot(cv_ex) + 
-  geom_point(aes(x=wc2.1_10m_tavg_03, y=value/pop)) +
-  theme_minimal()
+ggplot(cv_ex %>% filter(date == '2020-03-25')) + 
+  geom_point(aes(x=wc2.1_10m_wind_03, y=cases/(pop/1000))) +
+  theme_minimal() 
+
+ggplot(cv_ex %>% filter(date == '2020-03-25') %>% filter(!is.na(pop))) +
+  geom_density(aes(x=wc2.1_10m_srad_03, weight=cases/pop))
+
+# get climate data for each county and plot weighted by popsize
+# null model: is climate a factor in the US distribution
+
+# validate SDM today (March)
+# project SDM into Tristate for May/June
+
+
 
 
