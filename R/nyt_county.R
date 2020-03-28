@@ -11,6 +11,7 @@ library(cowplot)
 library(maxnet)
 library(cRacle)
 library(rasterExtras)
+library(usmap)
 
 
 # load NYT County data
@@ -89,7 +90,15 @@ if(any(file.exists(paste('data/', wc2_dl, sep='')))){} else{
 #read climate data
 cl_stack = raster::stack(list.files('data', pattern='.tif', full.names = T))
 cl_stack = crop(cl_stack, extent(c(-130, -40, 20, 55)))
+
 march_clim = cl_stack[[grep("03", names(cl_stack))]]
+march_clim = march_clim[[-grep("srad", names(march_clim))]]
+data(wrld_simpl)
+SPDF <- subset(wrld_simpl, NAME=="United States")
+## crop and mask
+r2 <- crop(march_clim, extent(SPDF))
+march_clim <- mask(r2, SPDF)
+
 cv_ex = raster::extract(march_clim, cv_new[,c('V6', 'V5')], method='bilinear' )
 cv_ex = cbind(cv_new, cv_ex)
 
@@ -155,7 +164,7 @@ d1 = ggplot(cv_ex %>% filter(date == last_day) %>% filter(!is.na(pop))) +
   geom_density(aes(x=wc2.1_10m_vapr_03, weight=(cases/pop)/sum(cases/pop)), colour='darkred', fill='darkred', alpha=0.1)+
   geom_density(data=all_ex, aes(x=wc2.1_10m_vapr_03, weight=pop/sum(pop)), colour='darkblue', fill='darkblue', alpha=0.1) +
   theme_minimal() + 
-  xlab('Solar Radiation') +
+  xlab('Water Vapor Pressure (kPa)') +
   ylab('Density')
 
 
@@ -164,7 +173,7 @@ d2 = ggplot(cv_ex %>% filter(date == '2020-03-11') %>% filter(!is.na(pop))) +
   geom_density(aes(x=wc2.1_10m_vapr_03, weight=(cases/pop)/sum(cases/pop)), colour='darkred', fill='darkred', alpha=0.1)+
   geom_density(data=all_ex, aes(x=wc2.1_10m_vapr_03, weight=pop/sum(pop)), colour='darkblue', fill='darkblue', alpha=0.1) +
   theme_minimal() + 
-  xlab('Solar Radiation') +
+  xlab('Water Vapor Pressure (kPa)') +
   ylab('Density')
 
 cp = plot_grid(a2, a1, b2, b1, c2, c1, d2, d1, ncol=2, nrow=4, label="AUTO")
@@ -184,7 +193,7 @@ ggplot(cv_ex %>% filter(date == '2020-03-12') %>% filter(!is.na(pop))) +
 occ = cv_new %>%
   filter(date == last_day) %>%
   group_by(county, V5, V6) %>% 
-  expand(count = seq(1:log(cases)))
+  expand(count = seq(1:cases))
   
 bg = rad_bg(as.data.frame(unique(cv_ex[,c('V6', 'V5')])), march_clim, radius = 200, n=20)
 
@@ -247,7 +256,86 @@ ev.set.bin <- evaluate(bin.occ, bin.abs)
 
 # project SDM into Tristate for May/June
 may_clim = cl_stack[[grep("05", names(cl_stack))]]
+may_clim = may_clim[[-grep("srad", names(may_clim))]]
+r2 <- crop(may_clim, extent(SPDF))
+may_clim <- mask(r2, SPDF)
+names(may_clim) = names(march_clim)
 m.may = predict(may_clim, best_mod, type = 'cloglog')
+plot(m.may - m) # set upggplot comparing March to May
+
+test_spdf <- as(m, "SpatialPixelsDataFrame")
+test_df <- as.data.frame(test_spdf)
+colnames(test_df) <- c("Degrees", "x", "y")
+(mapp_march = ggplot(data=test_df) +  
+    geom_tile(aes(x=x, y=y, fill=Degrees)) + 
+    coord_quickmap() + 
+    theme_minimal() + 
+    scale_fill_gradient2(low = "darkblue",
+                         mid = "white",
+                         high = "darkred",
+                         na.value='black', 
+                         limits=c(0,1)) +
+    theme(panel.background = element_rect(fill='black')) +
+    labs(x="Longitude", y="Latitude", title='March Distribution Model') 
+  
+)
+
+test_spdf <- as(m.may, "SpatialPixelsDataFrame")
+test_df <- as.data.frame(test_spdf)
+colnames(test_df) <- c("Degrees", "x", "y")
+(mapp_may = ggplot(data=test_df) +  
+    geom_tile(aes(x=x, y=y, fill=Degrees)) + 
+    coord_quickmap() + 
+    theme_minimal() + 
+    scale_fill_gradient2(low = "darkblue",
+                         mid = "white",
+                         high = "darkred",
+                         na.value='black', 
+                         limits=c(0,1)) +
+    theme(panel.background = element_rect(fill='black')) +
+    labs(x="Longitude", y="Latitude", title='May Distribution Model') 
+  
+)
+
+#plot change
+test_spdf <- as(m.may-m, "SpatialPixelsDataFrame")
+test_df <- as.data.frame(test_spdf)
+colnames(test_df) <- c("Degrees", "x", "y")
+(mapp_change = ggplot(data=test_df) +  
+    geom_tile(aes(x=x, y=y, fill=Degrees)) + 
+    coord_quickmap() + 
+    theme_minimal() + 
+    scale_fill_gradient2(low = "darkblue",
+                        mid = "white",
+                        high = "darkred",
+                        na.value='black', 
+                        limits=c(-1,1)) +
+    theme(panel.background = element_rect(fill='black')) +
+    labs(x="Longitude", y="Latitude", title='Relative Predicted Change (March - May)') 
+  
+)
+plot_grid(mapp_march, mapp_may, mapp_change, nrow=3, ncol=1)
+
+
+#plot tristate change
+necorr = extent(c(-78, -70, 38, 44))
+plot(m, ext=necorr)
+
+ny_march = crop(m, necorr)
+test_spdf <- as(ny_march, "SpatialPixelsDataFrame")
+test_df <- as.data.frame(test_spdf)
+colnames(test_df) <- c("Degrees", "x", "y")
+(mapp = ggplot(data=test_df) +  
+  geom_tile(aes(x=x, y=y, fill=Degrees)) + 
+  coord_quickmap() + theme_bw() + scale_fill_gsea() +
+  labs(x="Longitude", y="Latitude", title='BIEN Vegetation Plots') +
+  geom_point(data=cv_ex, 
+             aes(x=V6, y=V5), 
+             alpha=0.6, 
+             pch = 20, 
+             size=0.3) 
+  
+)
 
 # SDM of Humans in the US
 
