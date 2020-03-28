@@ -99,7 +99,8 @@ a1 = ggplot(cv_ex %>% filter(date == '2020-03-25') %>% filter(!is.na(pop))) +
   geom_density(data=all_ex, aes(x=wc2.1_10m_tavg_03, weight=pop/sum(pop)), colour='darkblue', fill='darkblue', alpha=0.1) +
   theme_minimal() + 
   xlab('Average Temperature (C)') +
-  ylab('Density')
+  ylab('Density') + 
+  ggtitle('March 25')
 
 
 
@@ -108,7 +109,8 @@ a2 = ggplot(cv_ex %>% filter(date == '2020-03-11') %>% filter(!is.na(pop))) +
   geom_density(data=all_ex, aes(x=wc2.1_10m_tavg_03, weight=pop/sum(pop)), colour='darkblue', fill='darkblue', alpha=0.1) +
   theme_minimal() + 
   xlab('Average Temperature (C)') +
-  ylab('Density')
+  ylab('Density') + 
+  ggtitle('March 11')
 
 b1 = ggplot(cv_ex %>% filter(date == '2020-03-25') %>% filter(!is.na(pop))) +
   geom_density(aes(x=wc2.1_10m_tmin_03, weight=(cases/pop)/sum(cases/pop)), colour='darkred', fill='darkred', alpha=0.1)+
@@ -144,7 +146,23 @@ c2 = ggplot(cv_ex %>% filter(date == '2020-03-11') %>% filter(!is.na(pop))) +
   ylab('Density')
 
 
-cp = plot_grid(a1,a2,b1, b2, c1, c2, ncol=2, nrow=3, label="AUTO")
+d1 = ggplot(cv_ex %>% filter(date == '2020-03-25') %>% filter(!is.na(pop))) +
+  geom_density(aes(x=wc2.1_10m_vapr_03, weight=(cases/pop)/sum(cases/pop)), colour='darkred', fill='darkred', alpha=0.1)+
+  geom_density(data=all_ex, aes(x=wc2.1_10m_vapr_03, weight=pop/sum(pop)), colour='darkblue', fill='darkblue', alpha=0.1) +
+  theme_minimal() + 
+  xlab('Solar Radiation') +
+  ylab('Density')
+
+
+
+d2 = ggplot(cv_ex %>% filter(date == '2020-03-11') %>% filter(!is.na(pop))) +
+  geom_density(aes(x=wc2.1_10m_vapr_03, weight=(cases/pop)/sum(cases/pop)), colour='darkred', fill='darkred', alpha=0.1)+
+  geom_density(data=all_ex, aes(x=wc2.1_10m_vapr_03, weight=pop/sum(pop)), colour='darkblue', fill='darkblue', alpha=0.1) +
+  theme_minimal() + 
+  xlab('Solar Radiation') +
+  ylab('Density')
+
+cp = plot_grid(a2, a1, b2, b1, c2, c1, d2, d1, ncol=2, nrow=4, label="AUTO")
 
 ggsave(cp, file='compare_2wk.png', height=12, width=9, dpi=600)
 
