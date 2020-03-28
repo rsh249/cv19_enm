@@ -193,11 +193,7 @@ d2 = ggplot(cv_ex %>% filter(date == '2020-03-11') %>% filter(!is.na(pop))) +
   xlab('Water Vapor Pressure (kPa)') +
   ylab('Density')
 
-cp = plot_grid(a2, a1, bb2, bb1, b2, b1, c2, c1, d2, d1, ncol=2, nrow=4, label="AUTO")
+cp = plot_grid(a2, a1, bb2, bb1, b2, b1, c2, c1, d2, d1, ncol=2, nrow=5, label="AUTO")
 
 ggsave(cp, file='compare_2wk.png', height=12, width=9, dpi=600)
 
-
-ggplot(cv_ex %>% filter(date == '2020-03-12') %>% filter(!is.na(pop))) +
-  geom_density(aes(x=wc2.1_10m_tmin_03, weight=(cases/pop)), colour='red') + 
-  geom_density(data=all_ex, aes(x=wc2.1_10m_tmin_03))

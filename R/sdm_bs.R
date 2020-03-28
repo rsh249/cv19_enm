@@ -130,8 +130,10 @@ colnames(test_df) <- c("Degrees", "x", "y")
     labs(x="Longitude", y="Latitude", title='Relative Predicted Change (March - May)') 
   
 )
-plot_grid(mapp_march, mapp_may, mapp_change, nrow=3, ncol=1)
 
+mapfig = plot_grid(mapp_march, mapp_may, mapp_change, nrow=3, ncol=1)
+
+ggsave(mapfig, file ='map_figure.png', height=9, width = 5, dpi=600)
 
 #plot tristate change
 necorr = extent(c(-78, -70, 38, 44))
