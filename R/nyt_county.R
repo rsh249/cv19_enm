@@ -5,6 +5,9 @@ library(reshape2)
 library(stringr)
 library(raster)
 library(tidycensus)
+library(ENMeval)
+library(cowplot)
+
 
 # load NYT County data
 cv_dat = read.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv') %>%
@@ -84,19 +87,48 @@ cl_stack = raster::stack(list.files('data', pattern='.tif', full.names = T))
 march_clim = cl_stack[[grep("03", names(cl_stack))]]
 cv_ex = extract(march_clim, cv_new[,c('V6', 'V5')], method='bilinear' )
 cv_ex = cbind(cv_new, cv_ex)
-#plot
-ggplot(cv_ex %>% filter(date == '2020-03-25')) + 
-  geom_point(aes(x=wc2.1_10m_wind_03, y=cases/(pop/1000))) +
-  theme_minimal() 
 
-ggplot(cv_ex %>% filter(date == '2020-03-25') %>% filter(!is.na(pop))) +
-  geom_density(aes(x=wc2.1_10m_srad_03, weight=cases/pop))
+all = popCounty %>%
+  left_join(US, by=c('county', 'state')) %>%
+  mutate(pop=value)
+all_ex = extract(march_clim, all[,c('V6', 'V5')], method='bilinear')
+all_ex = cbind(all, all_ex)
+#plot
+a1 = ggplot(cv_ex %>% filter(date == '2020-03-25') %>% filter(!is.na(pop))) +
+  geom_density(aes(x=wc2.1_10m_tavg_03, weight=(cases/pop)/sum(cases/pop)), colour='darkred', fill='darkred', alpha=0.1)+
+  geom_density(data=all_ex, aes(x=wc2.1_10m_tavg_03, weight=pop/sum(pop)), colour='darkblue', fill='darkblue', alpha=0.1) +
+  theme_minimal() + 
+  xlab('Average Temperature (C)') +
+  ylab('Density')
+
+
+
+a2 = ggplot(cv_ex %>% filter(date == '2020-03-11') %>% filter(!is.na(pop))) +
+  geom_density(aes(x=wc2.1_10m_tavg_03, weight=(cases/pop)/sum(cases/pop)), colour='darkred', fill='darkred', alpha=0.1)+
+  geom_density(data=all_ex, aes(x=wc2.1_10m_tavg_03, weight=pop/sum(pop)), colour='darkblue', fill='darkblue', alpha=0.1) +
+  theme_minimal() + 
+  xlab('Average Temperature (C)') +
+  ylab('Density')
+
+
+
+cp = plot_grid(a1,a2, nrow=1, label="AUTO")
+
+
+ggplot(cv_ex %>% filter(date == '2020-03-12') %>% filter(!is.na(pop))) +
+  geom_density(aes(x=wc2.1_10m_tmin_03, weight=(cases/pop)), colour='red') + 
+  geom_density(data=all_ex, aes(x=wc2.1_10m_tmin_03))
+
 
 # get climate data for each county and plot weighted by popsize
 # null model: is climate a factor in the US distribution
 
 # validate SDM today (March)
 # project SDM into Tristate for May/June
+
+# SDM of Humans in the US
+
+# Project NYC
 
 
 
