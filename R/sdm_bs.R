@@ -1,28 +1,37 @@
 source('R/nyt_county.R')
 
-
-
+varnum = c(1,2,3,4,5,6,7)
+march_clim = march_clim[[varnum]]
 # get climate data for each county and plot weighted by popsize
 # null model: is climate a factor in the US distribution
 
 # validate SDM today (March)
-occ = cv_new %>%
+occ = cv_ex %>%
   filter(date == last_day) %>%
   group_by(county, V5, V6) %>% 
-  expand(count = seq(1:cases))
+  mutate(scale=cases/pop)
+occ$scale = occ$scale/sum(occ$scale, na.rm=T)*100000
+occ2 = occ %>% 
+  filter(!is.na(scale)) %>%
+  expand(count = seq(1:(scale)))
 
-bg = rad_bg(as.data.frame(unique(cv_ex[,c('V6', 'V5')])), march_clim, radius = 200, n=20)
+bg = rad_bg(as.data.frame(unique(cv_ex[,c('V6', 'V5')])), 
+            march_clim, 
+            radius = 750, 
+            n=20)
+bg <- as(march_clim[[1]], "SpatialPixelsDataFrame")@coords
+bg <- bg[sample(1:nrow(bg), size = nrow(occ2), replace=F),]
 
 fc = c("L", "LQ")
 set.eval = ENMevaluate(
-  occ[,c('V6', 'V5')],
-  march_clim,
+  occ=occ2[,c('V6', 'V5')],
+  env=march_clim,
   rasterPreds = TRUE,
   parallel = TRUE,
   fc = fc,
-  numCores = 12,
-  method = 'block',
-  bg.coords = bg[,c('lon', 'lat')],
+  numCores = 48,
+  method = 'checkerboard2',
+  bg.coords = bg[,c('x', 'y')],
   clamp = TRUE,
   RMvalues = c(0.5, 1, 1.5, 2, 2.5, 3)
   #RMvalues = c(0.5, 2)
@@ -57,7 +66,15 @@ best_mod = maxnet(
   ),
   regmult = as.numeric(rm)
 )
-m = predict(march_clim, best_mod, clamp=T, type = 'cloglog')
+
+#mask for plots
+data(wrld_simpl)
+SPDF <- subset(wrld_simpl, NAME=="United States")
+## crop and mask
+r2 <- crop(march_clim, extent(SPDF))
+march_clim_mask <- mask(r2, SPDF)
+
+m = predict(march_clim_mask, best_mod, clamp=T, type = 'logistic')
 p.test = raster::extract(m, set.eval@occ.pts)
 ab.test = raster::extract(m, set.eval@bg.pts)
 e.sub = evaluate(p.test, ab.test,
@@ -72,11 +89,11 @@ ev.set.bin <- evaluate(bin.occ, bin.abs)
 
 # project SDM into Tristate for May/June
 may_clim = cl_stack[[grep("05", names(cl_stack))]]
-#may_clim = may_clim[[-grep("srad", names(may_clim))]]
 r2 <- crop(may_clim, extent(SPDF))
 may_clim <- mask(r2, SPDF)
+may_clim = may_clim[[varnum]]
 names(may_clim) = names(march_clim)
-m.may = predict(may_clim, best_mod, clamp=T, type = 'cloglog')
+m.may = predict(may_clim, best_mod, clamp=T, type = 'logistic')
 plot(m.may - m) # set upggplot comparing March to May
 
 test_spdf <- as(m, "SpatialPixelsDataFrame")
@@ -131,7 +148,7 @@ colnames(test_df) <- c("Degrees", "x", "y")
   
 )
 
-mapfig = plot_grid(mapp_march, mapp_may, mapp_change, nrow=3, ncol=1)
+(mapfig = plot_grid(mapp_march, mapp_may, mapp_change, nrow=3, ncol=1))
 
 ggsave(mapfig, file ='map_figure.png', height=9, width = 5, dpi=600)
 
