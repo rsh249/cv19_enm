@@ -6,17 +6,16 @@ library(reshape2)
 library(stringr)
 library(raster)
 library(tidycensus)
-library(ENMeval)
 library(cowplot)
-library(maxnet)
-library(cRacle)
-library(maptools)
+
+
 
 # load NYT County data
 cv_dat = read.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-counties.csv') %>%
   mutate(state = ifelse(state %in% state.name,
                         state.abb[match(state, state.name)],
-                        state)) 
+                        state)) %>%
+  mutate(date = as.Date(date))
 last_day = last(cv_dat$date)
 #get geodata for US municipalities
 if(file.exists("data/US.zip")){} else{
@@ -137,7 +136,7 @@ all_fin=as.data.frame(all_fin)
 all_ex2 = cbind(as.data.frame(all), all_fin)
 
 #plot
-a1 = ggplot(cv_ex %>% filter(date == '2020-03-25') %>% filter(!is.na(pop))) +
+a1 = ggplot(cv_ex %>% filter(date == last_day) %>% filter(!is.na(pop))) +
   geom_density(aes(x=wc2.1_2.5m_tavg_03, weight=(cases/pop)/sum(cases/pop)), colour='darkred', fill='darkred', alpha=0.1)+
   geom_density(data=all_ex2, aes(x=wc2.1_2.5m_tavg_03, weight=pop/sum(pop)), colour='darkblue', fill='darkblue', alpha=0.1) +
   theme_minimal() + 
@@ -147,7 +146,7 @@ a1 = ggplot(cv_ex %>% filter(date == '2020-03-25') %>% filter(!is.na(pop))) +
 
 
 
-a2 = ggplot(cv_ex %>% filter(date == '2020-03-11') %>% filter(!is.na(pop))) +
+a2 = ggplot(cv_ex %>% filter(date == last_day - 14) %>% filter(!is.na(pop))) +
   geom_density(aes(x=wc2.1_2.5m_tavg_03, weight=(cases/pop)/sum(cases/pop)), colour='darkred', fill='darkred', alpha=0.1)+
   geom_density(data=all_ex2, aes(x=wc2.1_2.5m_tavg_03, weight=pop/sum(pop)), colour='darkblue', fill='darkblue', alpha=0.1) +
   theme_minimal() + 
@@ -164,7 +163,7 @@ b1 = ggplot(cv_ex %>% filter(date == last_day) %>% filter(!is.na(pop))) +
 
 
 
-b2 = ggplot(cv_ex %>% filter(date == '2020-03-11') %>% filter(!is.na(pop))) +
+b2 = ggplot(cv_ex %>% filter(date == last_day - 14) %>% filter(!is.na(pop))) +
   geom_density(aes(x=wc2.1_2.5m_tmin_03, weight=(cases/pop)/sum(cases/pop)), colour='darkred', fill='darkred', alpha=0.1)+
   geom_density(data=all_ex2, aes(x=wc2.1_2.5m_tmin_03, weight=pop/sum(pop)), colour='darkblue', fill='darkblue', alpha=0.1) +
   theme_minimal() + 
@@ -180,7 +179,7 @@ bb1 = ggplot(cv_ex %>% filter(date == last_day) %>% filter(!is.na(pop))) +
 
 
 
-bb2 = ggplot(cv_ex %>% filter(date == '2020-03-11') %>% filter(!is.na(pop))) +
+bb2 = ggplot(cv_ex %>% filter(date == last_day - 14) %>% filter(!is.na(pop))) +
   geom_density(aes(x=wc2.1_2.5m_tmax_03, weight=(cases/pop)/sum(cases/pop)), colour='darkred', fill='darkred', alpha=0.1)+
   geom_density(data=all_ex2, aes(x=wc2.1_2.5m_tmax_03, weight=pop/sum(pop)), colour='darkblue', fill='darkblue', alpha=0.1) +
   theme_minimal() + 
@@ -198,7 +197,7 @@ c1 = ggplot(cv_ex %>% filter(date == last_day) %>% filter(!is.na(pop))) +
 
 
 
-c2 = ggplot(cv_ex %>% filter(date == '2020-03-11') %>% filter(!is.na(pop))) +
+c2 = ggplot(cv_ex %>% filter(date == last_day - 14) %>% filter(!is.na(pop))) +
   geom_density(aes(x=wc2.1_2.5m_srad_03, weight=(cases/pop)/sum(cases/pop)), colour='darkred', fill='darkred', alpha=0.1)+
   geom_density(data=all_ex2, aes(x=wc2.1_2.5m_srad_03, weight=pop/sum(pop)), colour='darkblue', fill='darkblue', alpha=0.1) +
   theme_minimal() + 
@@ -215,7 +214,7 @@ d1 = ggplot(cv_ex %>% filter(date == last_day) %>% filter(!is.na(pop))) +
 
 
 
-d2 = ggplot(cv_ex %>% filter(date == '2020-03-11') %>% filter(!is.na(pop))) +
+d2 = ggplot(cv_ex %>% filter(date == last_day - 14) %>% filter(!is.na(pop))) +
   geom_density(aes(x=wc2.1_2.5m_vapr_03, weight=(cases/pop)/sum(cases/pop)), colour='darkred', fill='darkred', alpha=0.1)+
   geom_density(data=all_ex2, aes(x=wc2.1_2.5m_vapr_03, weight=pop/sum(pop)), colour='darkblue', fill='darkblue', alpha=0.1) +
   theme_minimal() + 

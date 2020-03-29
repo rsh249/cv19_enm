@@ -1,4 +1,8 @@
 source('R/nyt_county.R')
+library(ENMeval)
+library(maxnet)
+library(cRacle)
+library(maptools)
 
 varnum = c(1,2,3,4,5,6,7)
 march_clim = march_clim[[varnum]]
@@ -54,7 +58,6 @@ fc1 = best_arr[[1]][1:(length(best_arr[[1]]) - 1)]
 maxmatr = rbind(set.eval@occ.pts, set.eval@bg.pts)
 pres = c(rep(1, nrow(set.eval@occ.pts)), rep(0, nrow(set.eval@bg.pts)))
 maxmatr = cbind(maxmatr, pres)
-
 maxextr = raster::extract(march_clim, maxmatr[, c('LON', 'LAT')])
 best_mod = maxnet(
   p = maxmatr[, 'pres'],
@@ -75,16 +78,34 @@ r2 <- crop(march_clim, extent(SPDF))
 march_clim_mask <- mask(r2, SPDF)
 
 m = predict(march_clim_mask, best_mod, clamp=T, type = 'logistic')
-p.test = raster::extract(m, set.eval@occ.pts)
-ab.test = raster::extract(m, set.eval@bg.pts)
-e.sub = evaluate(p.test, ab.test,
-                 best_mod)
-th.sub = threshold(e.sub)
-thr = m > th.sub$kappa
-#  plot(thr, col = c('black', 'blue'), main = 'no thin')
-bin.occ = raster::extract(thr, set.eval@occ.pts)
-bin.abs = raster::extract(thr, set.eval@bg.pts)
-ev.set.bin <- evaluate(bin.occ, bin.abs)
+
+#predict SDM for human density
+
+popdens = cv_new %>%
+  group_by(county, V5, V6) %>%
+  filter(!is.na(pop)) %>%
+  expand(count = seq(1:(pop/1000))) %>%
+  rename(LON=V6) %>%
+  rename(LAT=V5)
+save_na = raster::extract(march_clim, popdens[, c('LON', 'LAT')]) 
+save_na = cbind(popdens, save_na)
+save_na = na.omit(save_na)
+densmatr = rbind(as.data.frame(save_na[,c('LON', 'LAT')]), set.eval@bg.pts)
+pres = (c(rep(1, nrow(save_na[,c('LON', 'LAT')])), rep(0, nrow(set.eval@bg.pts))))
+densmatr = cbind(densmatr, pres) 
+densextr = raster::extract(march_clim, densmatr[, c('LON', 'LAT')])
+dens_mod = maxnet(
+  p = densmatr[, 'pres'],
+  data = as.data.frame(densextr),
+  maxnet.formula(
+    p = densmatr[, 'pres'],
+    data = as.data.frame(densextr),
+    classes = stringr::str_to_lower(fc1)
+  ),
+  regmult = as.numeric(rm)
+)
+
+dens.m = predict(march_clim_mask, dens_mod, clamp=T, type = 'logistic')
 
 
 # project SDM into Tristate for May/June
