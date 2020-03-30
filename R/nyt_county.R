@@ -142,7 +142,7 @@ a1 = ggplot(cv_ex %>% filter(date == last_day) %>% filter(!is.na(pop))) +
   theme_minimal() + 
   xlab('Average Temperature (C)') +
   ylab('Density') + 
-  ggtitle('March 25')
+  ggtitle(last_day)
 
 
 
@@ -152,7 +152,7 @@ a2 = ggplot(cv_ex %>% filter(date == last_day - 14) %>% filter(!is.na(pop))) +
   theme_minimal() + 
   xlab('Average Temperature (C)') +
   ylab('Density') + 
-  ggtitle('March 11')
+  ggtitle(last_day - 14)
 
 b1 = ggplot(cv_ex %>% filter(date == last_day) %>% filter(!is.na(pop))) +
   geom_density(aes(x=wc2.1_2.5m_tmin_03, weight=(cases/pop)/sum(cases/pop)), colour='darkred', fill='darkred', alpha=0.1)+
