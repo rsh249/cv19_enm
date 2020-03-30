@@ -107,6 +107,9 @@ dens_mod = maxnet(
 
 dens.m = predict(march_clim_mask, dens_mod, clamp=T, type = 'logistic')
 
+
+
+
 #niche equivalency
 library(ecospat)
 library(ENMTools)
@@ -174,6 +177,9 @@ grid.clim2 <- ecospat.grid.clim.dyn(
 
 D.overlap <- ecospat.niche.overlap (grid.clim1, grid.clim2, cor=T)$D 
 D.overlap
+
+### FUNCTIONS BELOW BORROWED FROM library(ecospat) to solve parallel error...
+
 overlap.eq.gen <- function(repi, z1, z2) {
   if (is.null(z1$y)) {
     # overlap on one axis
