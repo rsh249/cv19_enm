@@ -149,11 +149,27 @@ cv_ex = cbind(as.data.frame(cv_new), as.data.frame(cv_fin))
 ggplot(data=cv_new %>% filter(date==last_day)) +
   geom_point(aes(x=pop, y=(cases/pop)/sum(cases/pop, na.rm=T))) 
 
-pop_scale = ggplot(data=cv_new %>% filter(date==last_day)) +
-  geom_point(aes(x=pop, y=cases)) +
-  scale_y_log10()
+(pop_raw = ggplot(data=cv_new %>% filter(date==last_day)) +
+  geom_point(aes(x=pop/1000000, y=cases, alpha=0.2)) +
+  scale_y_log10() + 
+  theme_minimal() +
+  theme(legend.position = 'none') +
+  xlab('Population (millions)') +
+  ylab('Cases') +
+  ggtitle("Case Count and Locality Population")
+)
 
-ggsave(pop_scale, file='cases_v_pop.png')
+(pop_scale = ggplot(data=cv_new %>% filter(date==last_day)) +
+    geom_point(aes(x=pop/1000000, y=(cases/pop), alpha=0.2)) +
+    theme_minimal() +
+    theme(legend.position = 'none') +
+    xlab('Population (millions)') +
+    ylab('Cases / Total Population') +
+    ggtitle("Case Rate (per capita) and Locality Population")
+)
+
+pop_map = plot_grid(pop_raw, pop_scale, nrow=1, ncol=2, labels='AUTO')
+ggsave(pop_map, file='cases_v_pop.png')
 
 all = popCounty %>%
   left_join(US, by=c('county', 'state')) %>%
@@ -296,7 +312,7 @@ d3 = ggplot(cv_ex %>% filter(date == last_day - 21) %>% filter(!is.na(pop))) +
   xlab('Water Vapor Pressure (kPa)') +
   ylab('Density')
 
-cp = plot_grid(a3, a2, a1, bb3, bb2, bb1, b3, b2, b1, c3, c2, c1, d3, d2, d1, ncol=3, nrow=5, label="AUTO")
+cp = plot_grid(a3, a2, a1, bb3, bb2, bb1, b3, b2, b1, c3, c2, c1, d3, d2, d1, ncol=3, nrow=5, labels="AUTO")
 
 ggsave(cp, file='compare_2wk.png', height=9, width=9, dpi=600)
 
