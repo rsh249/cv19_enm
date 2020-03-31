@@ -213,13 +213,13 @@ b1 = ggplot(cv_ex %>% filter(date == last_day) %>% filter(!is.na(pop))) +
   xlab('Min Temparature (C)') +
   ylab('Density')
 
-a3 = ggplot(cv_ex %>% filter(date == last_day - 21) %>% filter(!is.na(pop))) +
+a3 = ggplot(cv_ex %>% filter(date == last_day - 28) %>% filter(!is.na(pop))) +
   geom_density(aes(x=wc2.1_2.5m_tavg_03, weight=(cases/pop)/sum(cases/pop)), colour='darkred', fill='darkred', alpha=0.1)+
   geom_density(data=all_ex2, aes(x=wc2.1_2.5m_tavg_03, weight=pop/sum(pop)), colour='darkblue', fill='darkblue', alpha=0.1) +
   theme_minimal() + 
   xlab('Average Temperature (C)') +
   ylab('Density') + 
-  ggtitle(last_day - 21)
+  ggtitle(last_day - 28)
 
 b1 = ggplot(cv_ex %>% filter(date == last_day) %>% filter(!is.na(pop))) +
   geom_density(aes(x=wc2.1_2.5m_tmin_03, weight=(cases/pop)/sum(cases/pop)), colour='darkred', fill='darkred', alpha=0.1)+
@@ -235,7 +235,7 @@ b2 = ggplot(cv_ex %>% filter(date == last_day - 14) %>% filter(!is.na(pop))) +
   xlab('Min Temperature (C)') +
   ylab('Density')
 
-b3 = ggplot(cv_ex %>% filter(date == last_day - 21) %>% filter(!is.na(pop))) +
+b3 = ggplot(cv_ex %>% filter(date == last_day - 28) %>% filter(!is.na(pop))) +
   geom_density(aes(x=wc2.1_2.5m_tmin_03, weight=(cases/pop)/sum(cases/pop)), colour='darkred', fill='darkred', alpha=0.1)+
   geom_density(data=all_ex2, aes(x=wc2.1_2.5m_tmin_03, weight=pop/sum(pop)), colour='darkblue', fill='darkblue', alpha=0.1) +
   theme_minimal() + 
@@ -258,7 +258,7 @@ bb2 = ggplot(cv_ex %>% filter(date == last_day - 14) %>% filter(!is.na(pop))) +
   xlab('Max Temperature (C)') +
   ylab('Density')
 
-bb3 = ggplot(cv_ex %>% filter(date == last_day - 21) %>% filter(!is.na(pop))) +
+bb3 = ggplot(cv_ex %>% filter(date == last_day - 28) %>% filter(!is.na(pop))) +
   geom_density(aes(x=wc2.1_2.5m_tmax_03, weight=(cases/pop)/sum(cases/pop)), colour='darkred', fill='darkred', alpha=0.1)+
   geom_density(data=all_ex2, aes(x=wc2.1_2.5m_tmax_03, weight=pop/sum(pop)), colour='darkblue', fill='darkblue', alpha=0.1) +
   theme_minimal() + 
@@ -282,7 +282,7 @@ c2 = ggplot(cv_ex %>% filter(date == last_day - 14) %>% filter(!is.na(pop))) +
   xlab('Solar Radiation') +
   ylab('Density')
 
-c3 = ggplot(cv_ex %>% filter(date == last_day - 21) %>% filter(!is.na(pop))) +
+c3 = ggplot(cv_ex %>% filter(date == last_day - 28) %>% filter(!is.na(pop))) +
   geom_density(aes(x=wc2.1_2.5m_srad_03, weight=(cases/pop)/sum(cases/pop)), colour='darkred', fill='darkred', alpha=0.1)+
   geom_density(data=all_ex2, aes(x=wc2.1_2.5m_srad_03, weight=pop/sum(pop)), colour='darkblue', fill='darkblue', alpha=0.1) +
   theme_minimal() + 
@@ -305,7 +305,7 @@ d2 = ggplot(cv_ex %>% filter(date == last_day - 14) %>% filter(!is.na(pop))) +
   xlab('Water Vapor Pressure (kPa)') +
   ylab('Density')
 
-d3 = ggplot(cv_ex %>% filter(date == last_day - 21) %>% filter(!is.na(pop))) +
+d3 = ggplot(cv_ex %>% filter(date == last_day - 28) %>% filter(!is.na(pop))) +
   geom_density(aes(x=wc2.1_2.5m_vapr_03, weight=(cases/pop)/sum(cases/pop)), colour='darkred', fill='darkred', alpha=0.1)+
   geom_density(data=all_ex2, aes(x=wc2.1_2.5m_vapr_03, weight=pop/sum(pop)), colour='darkblue', fill='darkblue', alpha=0.1) +
   theme_minimal() + 

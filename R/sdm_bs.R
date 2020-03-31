@@ -456,13 +456,10 @@ ecospat.plot.overlap.test(eq.test, "D", "Overlap")
 mtext("A", side = 3, adj = 0.05, line = -1.3)
 ecospat.plot.overlap.test(sim.test, "D", "Similarity")
 mtext("B", side = 3, adj = 0.05, line = -1.3)
-
 dev.off()
 
-par(mfrow = c(1, 2), mar = c(2, 2.5, 0, 0))
-for(i in 1:2) {
-  plot(1)
+
   
-}
+
 
 
