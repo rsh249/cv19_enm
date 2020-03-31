@@ -66,6 +66,7 @@ cv_new = cv_dat %>%
   dplyr::select(date, county, state, fips, cases, deaths, cvar, pop, V5, V6 )
   
 
+#plot scaling of cases/pop and pop/sum(pop)
 
 
 

@@ -3,6 +3,7 @@ library(ENMeval)
 library(maxnet)
 library(cRacle)
 library(maptools)
+library(parallel)
 
 varnum = c(1,2,3,4,5,6,7)
 march_clim = march_clim[[varnum]]
@@ -400,7 +401,7 @@ overlap.sim.gen <- function(repi, z1, z2, rand.type = rand.type) {
 }
 
 
-#######
+####### test and visualize nich
 
 eq.test <- test_ecospat.niche.equivalency.test(grid.clim1, grid.clim2,
                                           rep=500,
@@ -416,86 +417,7 @@ sim.test <- test_ecospat.niche.similarity.test(grid.clim1, grid.clim2,
 
 png('overlap_graphic.png', height=7, width = 5, units='in', res=500)
 par(mfrow=c(2,1))
-ecospat.plot.overlap.test(eq.test, "D", "Equivalency")
-ecospat.plot.overlap.test(sim.test, "D", "Equivalency")
+ecospat.plot.overlap.test(eq.test, "D", "Overlap")
+ecospat.plot.overlap.test(sim.test, "D", "Similarity")
 dev.off()
-
-
-# 
-# # project SDM into Tristate for May/June
-# may_clim = cl_stack[[grep("05", names(cl_stack))]]
-# r2 <- crop(may_clim, extent(SPDF))
-# may_clim <- mask(r2, SPDF)
-# may_clim = may_clim[[varnum]]
-# names(may_clim) = names(march_clim)
-# m.may = predict(may_clim, best_mod, clamp=T, type = 'logistic')
-# plot(m.may - m) # set upggplot comparing March to May
-# 
-# test_spdf <- as(m, "SpatialPixelsDataFrame")
-# test_df <- as.data.frame(test_spdf)
-# colnames(test_df) <- c("Degrees", "x", "y")
-# (mapp_march = ggplot(data=test_df) +  
-#     geom_tile(aes(x=x, y=y, fill=Degrees)) + 
-#     coord_quickmap() + 
-#     theme_minimal() + 
-#     scale_fill_gradient2(low = "darkblue",
-#                          mid = "white",
-#                          high = "darkred",
-#                          na.value='black', 
-#                          limits=c(0,1)) +
-#     theme(panel.background = element_rect(fill='black')) +
-#     labs(x="Longitude", y="Latitude", title='March Distribution Model') 
-#   
-# )
-# 
-# test_spdf <- as(m.may, "SpatialPixelsDataFrame")
-# test_df <- as.data.frame(test_spdf)
-# colnames(test_df) <- c("Degrees", "x", "y")
-# (mapp_may = ggplot(data=test_df) +  
-#     geom_tile(aes(x=x, y=y, fill=Degrees)) + 
-#     coord_quickmap() + 
-#     theme_minimal() + 
-#     scale_fill_gradient2(low = "darkblue",
-#                          mid = "white",
-#                          high = "darkred",
-#                          na.value='black', 
-#                          limits=c(0,1)) +
-#     theme(panel.background = element_rect(fill='black')) +
-#     labs(x="Longitude", y="Latitude", title='May Distribution Model') 
-#   
-# )
-# 
-# #plot change
-# test_spdf <- as(m.may-m, "SpatialPixelsDataFrame")
-# test_df <- as.data.frame(test_spdf)
-# colnames(test_df) <- c("Degrees", "x", "y")
-# (mapp_change = ggplot(data=test_df) +  
-#     geom_tile(aes(x=x, y=y, fill=Degrees)) + 
-#     coord_quickmap() + 
-#     theme_minimal() + 
-#     scale_fill_gradient2(low = "darkblue",
-#                          mid = "white",
-#                          high = "darkred",
-#                          na.value='black', 
-#                          limits=c(-1,1)) +
-#     theme(panel.background = element_rect(fill='black')) +
-#     labs(x="Longitude", y="Latitude", title='Relative Predicted Change (March - May)') 
-#   
-# )
-# 
-# (mapfig = plot_grid(mapp_march, mapp_may, mapp_change, nrow=3, ncol=1))
-# 
-# ggsave(mapfig, file ='map_figure.png', height=9, width = 5, dpi=600)
-# 
-# #plot tristate change
-# necorr = extent(c(-78, -70, 38, 44))
-# plot(m, ext=necorr)
-# 
-
-# SDM of Humans in the US
-
-# Project NYC
-
-
-
 
