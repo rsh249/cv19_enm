@@ -142,7 +142,7 @@ colnames(pop_df) <- c("Suitability", "x", "y")
   
 )
 
-mapfig = plot_grid(mapp_cv, mapp_pop, nrow=2, ncol=1)
+mapfig = plot_grid(mapp_cv, mapp_pop, nrow=2, ncol=1, labels='AUTO')
 ggsave(mapfig, file = 'map_fig3.png', height = 7, width=5, dpi=500 )
 
 
@@ -453,6 +453,16 @@ sim.test <- test_ecospat.niche.similarity.test(grid.clim1, grid.clim2,
 png('overlap_graphic.png', height=7, width = 5, units='in', res=500)
 par(mfrow=c(2,1))
 ecospat.plot.overlap.test(eq.test, "D", "Overlap")
+mtext("A", side = 3, adj = 0.05, line = -1.3)
 ecospat.plot.overlap.test(sim.test, "D", "Similarity")
+mtext("B", side = 3, adj = 0.05, line = -1.3)
+
 dev.off()
+
+par(mfrow = c(1, 2), mar = c(2, 2.5, 0, 0))
+for(i in 1:2) {
+  plot(1)
+  
+}
+
 
