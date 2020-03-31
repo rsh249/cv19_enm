@@ -30,9 +30,16 @@ US = US %>%
   mutate(county = replace(county, county=="Bronx" & state=="NY", "New York City")) %>%
   mutate(county = replace(county, county=="New" & state=="NY", "New York City")) %>%
   mutate(county = replace(county, county=="Richmond" & state=="NY", "New York City")) %>%
-  mutate(county = replace(county, county=="Kings" & state=="NY", "New York City")) 
+  mutate(county = replace(county, county=="Kings" & state=="NY", "New York City")) %>%
+  mutate(county = replace(county, county=="Clay" & state=="MO", "Kansas City")) %>%
+  mutate(county = replace(county, county=="Cass" & state=="MO", "Kansas City")) %>%
+  mutate(county = replace(county, county=="Jackson" & state=="MO", "Kansas City")) %>%
+  mutate(county = replace(county, county=="Platte" & state=="MO", "Kansas City")) %>%
+  group_by(county, state) %>%
+  summarize(V5=mean(V5), V6=mean(V6)) %>%
+  mutate(county = str_replace(county, " County", "")) %>%
+  distinct()
 
-head(US)
 
 # get population data w/tidycensus
 census_api_key('3eef6660d69eefaca172cd41c483f746ecd6c287', overwrite = T, install = T)
@@ -51,23 +58,41 @@ popCounty<- get_decennial(geography = "county", year = 2010,
   mutate(county = replace(county, county=="New" & state=="NY", "New York City")) %>%
   mutate(county = replace(county, county=="Richmond" & state=="NY", "New York City")) %>%
   mutate(county = replace(county, county=="Kings" & state=="NY", "New York City")) %>%
+  mutate(county = replace(county, county=="Clay" & state=="MO", "Kansas City")) %>%
+  mutate(county = replace(county, county=="Cass" & state=="MO", "Kansas City")) %>%
+  mutate(county = replace(county, county=="Jackson" & state=="MO", "Kansas City")) %>%
+  mutate(county = replace(county, county=="Platte" & state=="MO", "Kansas City")) %>%
   group_by(county, state, variable) %>%
-  summarize(value = sum(value))
+  summarize(value = sum(value)) %>%
+  distinct()
 
 
 
 #join covid19 case records and geocoding by county name and state
-cv_new = cv_dat %>% 
-  left_join(US, by=c('county', 'state')) %>%
-  left_join(popCounty, by = c('county', 'state')) %>%
-  dplyr::select(date, county, state, fips, cases, deaths, variable, value, V5, V6 ) %>%
+cv_new = cv_dat  %>%
+  mutate(county = str_replace(county, " city", "")) %>%
+  group_by(county, state, date)%>%
+  summarize(cases = sum(cases), deaths = sum(deaths)) %>%
+  inner_join(US, by=c('county', 'state')) %>%
+  inner_join(popCounty, by = c('county', 'state')) %>%
+  dplyr::select(date, county, state, cases, deaths, variable, value, V5, V6 ) %>%
   mutate(cvar = variable) %>%
   mutate(pop = value) %>% 
-  dplyr::select(date, county, state, fips, cases, deaths, cvar, pop, V5, V6 )
-  
+  dplyr::select(date, county, state, cases, deaths, cvar, pop, V5, V6 ) %>%
+  mutate(county = replace(county, county=='St. Louis city', 'St. Louis')) %>%
+  group_by(county, state, date) %>%
+  slice(n())
 
-#plot scaling of cases/pop and pop/sum(pop)
-
+t1 = cv_dat %>% filter(date == last_day) 
+t2 = cv_new %>% filter(date == last_day) 
+sum(t1$cases) #sanity check: Is this number today's number?
+sum(t2$cases) #sanity check: Is this number today's number?
+cv_dropout = cv_new %>%
+  filter(is.na(V5)) %>%
+  filter(is.na(V6)) #if this is not nrow() == 0 then inspect
+cv_new = cv_new %>%
+  filter(!is.na(V5)) %>%
+  filter(!is.na(V6))
 
 
 # get climate data
@@ -105,9 +130,8 @@ cl_stack = crop(cl_stack, extent(c(-130, -60, 20, 55)))
 march_clim = cl_stack[[grep("03", names(cl_stack))]]
 #march_clim = march_clim[[-grep("wind", names(march_clim))]]
 
-cv_new = cv_new %>%
-  filter(!is.na(V5)) %>%
-  filter(!is.na(V6))
+
+
 cv_ex = raster::extract(march_clim, 
                         cv_new[,c('V6', 'V5')], 
                         buffer= 5000)
@@ -119,7 +143,17 @@ for(i in 2:length(cv_ex)){
     cv_fin=rbind(cv_fin, rep(NA, nlayers(march_clim)))
   }
 }
-cv_ex = cbind(cv_new, cv_fin)
+cv_ex = cbind(as.data.frame(cv_new), as.data.frame(cv_fin))
+
+#plot scaling of cases/pop and pop/sum(pop)
+ggplot(data=cv_new %>% filter(date==last_day)) +
+  geom_point(aes(x=pop, y=(cases/pop)/sum(cases/pop, na.rm=T))) 
+
+pop_scale = ggplot(data=cv_new %>% filter(date==last_day)) +
+  geom_point(aes(x=pop, y=cases)) +
+  scale_y_log10()
+
+ggsave(pop_scale, file='cases_v_pop.png')
 
 all = popCounty %>%
   left_join(US, by=c('county', 'state')) %>%
@@ -155,6 +189,7 @@ a2 = ggplot(cv_ex %>% filter(date == last_day - 14) %>% filter(!is.na(pop))) +
   ylab('Density') + 
   ggtitle(last_day - 14)
 
+
 b1 = ggplot(cv_ex %>% filter(date == last_day) %>% filter(!is.na(pop))) +
   geom_density(aes(x=wc2.1_2.5m_tmin_03, weight=(cases/pop)/sum(cases/pop)), colour='darkred', fill='darkred', alpha=0.1)+
   geom_density(data=all_ex2, aes(x=wc2.1_2.5m_tmin_03, weight=pop/sum(pop)), colour='darkblue', fill='darkblue', alpha=0.1) +
@@ -162,9 +197,29 @@ b1 = ggplot(cv_ex %>% filter(date == last_day) %>% filter(!is.na(pop))) +
   xlab('Min Temparature (C)') +
   ylab('Density')
 
+a3 = ggplot(cv_ex %>% filter(date == last_day - 21) %>% filter(!is.na(pop))) +
+  geom_density(aes(x=wc2.1_2.5m_tavg_03, weight=(cases/pop)/sum(cases/pop)), colour='darkred', fill='darkred', alpha=0.1)+
+  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_tavg_03, weight=pop/sum(pop)), colour='darkblue', fill='darkblue', alpha=0.1) +
+  theme_minimal() + 
+  xlab('Average Temperature (C)') +
+  ylab('Density') + 
+  ggtitle(last_day - 21)
 
+b1 = ggplot(cv_ex %>% filter(date == last_day) %>% filter(!is.na(pop))) +
+  geom_density(aes(x=wc2.1_2.5m_tmin_03, weight=(cases/pop)/sum(cases/pop)), colour='darkred', fill='darkred', alpha=0.1)+
+  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_tmin_03, weight=pop/sum(pop)), colour='darkblue', fill='darkblue', alpha=0.1) +
+  theme_minimal() + 
+  xlab('Min Temperature (C)') +
+  ylab('Density')
 
 b2 = ggplot(cv_ex %>% filter(date == last_day - 14) %>% filter(!is.na(pop))) +
+  geom_density(aes(x=wc2.1_2.5m_tmin_03, weight=(cases/pop)/sum(cases/pop)), colour='darkred', fill='darkred', alpha=0.1)+
+  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_tmin_03, weight=pop/sum(pop)), colour='darkblue', fill='darkblue', alpha=0.1) +
+  theme_minimal() + 
+  xlab('Min Temperature (C)') +
+  ylab('Density')
+
+b3 = ggplot(cv_ex %>% filter(date == last_day - 21) %>% filter(!is.na(pop))) +
   geom_density(aes(x=wc2.1_2.5m_tmin_03, weight=(cases/pop)/sum(cases/pop)), colour='darkred', fill='darkred', alpha=0.1)+
   geom_density(data=all_ex2, aes(x=wc2.1_2.5m_tmin_03, weight=pop/sum(pop)), colour='darkblue', fill='darkblue', alpha=0.1) +
   theme_minimal() + 
@@ -187,6 +242,12 @@ bb2 = ggplot(cv_ex %>% filter(date == last_day - 14) %>% filter(!is.na(pop))) +
   xlab('Max Temperature (C)') +
   ylab('Density')
 
+bb3 = ggplot(cv_ex %>% filter(date == last_day - 21) %>% filter(!is.na(pop))) +
+  geom_density(aes(x=wc2.1_2.5m_tmax_03, weight=(cases/pop)/sum(cases/pop)), colour='darkred', fill='darkred', alpha=0.1)+
+  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_tmax_03, weight=pop/sum(pop)), colour='darkblue', fill='darkblue', alpha=0.1) +
+  theme_minimal() + 
+  xlab('Max Temperature (C)') +
+  ylab('Density')
 
 
 c1 = ggplot(cv_ex %>% filter(date == last_day) %>% filter(!is.na(pop))) +
@@ -205,6 +266,12 @@ c2 = ggplot(cv_ex %>% filter(date == last_day - 14) %>% filter(!is.na(pop))) +
   xlab('Solar Radiation') +
   ylab('Density')
 
+c3 = ggplot(cv_ex %>% filter(date == last_day - 21) %>% filter(!is.na(pop))) +
+  geom_density(aes(x=wc2.1_2.5m_srad_03, weight=(cases/pop)/sum(cases/pop)), colour='darkred', fill='darkred', alpha=0.1)+
+  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_srad_03, weight=pop/sum(pop)), colour='darkblue', fill='darkblue', alpha=0.1) +
+  theme_minimal() + 
+  xlab('Solar Radiation') +
+  ylab('Density')
 
 d1 = ggplot(cv_ex %>% filter(date == last_day) %>% filter(!is.na(pop))) +
   geom_density(aes(x=wc2.1_2.5m_vapr_03, weight=(cases/pop)/sum(cases/pop)), colour='darkred', fill='darkred', alpha=0.1)+
@@ -222,7 +289,14 @@ d2 = ggplot(cv_ex %>% filter(date == last_day - 14) %>% filter(!is.na(pop))) +
   xlab('Water Vapor Pressure (kPa)') +
   ylab('Density')
 
-cp = plot_grid(a2, a1, bb2, bb1, b2, b1, c2, c1, d2, d1, ncol=2, nrow=5, label="AUTO")
+d3 = ggplot(cv_ex %>% filter(date == last_day - 21) %>% filter(!is.na(pop))) +
+  geom_density(aes(x=wc2.1_2.5m_vapr_03, weight=(cases/pop)/sum(cases/pop)), colour='darkred', fill='darkred', alpha=0.1)+
+  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_vapr_03, weight=pop/sum(pop)), colour='darkblue', fill='darkblue', alpha=0.1) +
+  theme_minimal() + 
+  xlab('Water Vapor Pressure (kPa)') +
+  ylab('Density')
 
-ggsave(cp, file='compare_2wk.png', height=12, width=9, dpi=600)
+cp = plot_grid(a3, a2, a1, bb3, bb2, bb1, b3, b2, b1, c3, c2, c1, d3, d2, d1, ncol=3, nrow=5, label="AUTO")
+
+ggsave(cp, file='compare_2wk.png', height=9, width=9, dpi=600)
 

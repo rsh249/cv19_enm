@@ -5,8 +5,10 @@ library(cRacle)
 library(maptools)
 library(parallel)
 
-varnum = c(1,2,3,4,5,6,7)
+varnum = c(1,2,4,6,7)
 march_clim = march_clim[[varnum]]
+#test collinearity of these ^?
+
 # get climate data for each county and plot weighted by popsize
 # null model: is climate a factor in the US distribution
 
@@ -78,7 +80,7 @@ SPDF <- subset(wrld_simpl, NAME=="United States")
 r2 <- crop(march_clim, extent(SPDF))
 march_clim_mask <- mask(r2, SPDF)
 
-m = predict(march_clim_mask, best_mod, clamp=T, type = 'logistic')
+m = predict(march_clim_mask, best_mod, clamp=T, type = 'cloglog')
 
 #predict SDM for human density
 
@@ -106,9 +108,42 @@ dens_mod = maxnet(
   regmult = as.numeric(rm)
 )
 
-dens.m = predict(march_clim_mask, dens_mod, clamp=T, type = 'logistic')
+dens.m = predict(march_clim_mask, dens_mod, clamp=T, type = 'cloglog')
 
+#plot SDMs
 
+cv_spdf <- as(m, "SpatialPixelsDataFrame")
+cv_df <- as.data.frame(cv_spdf)
+colnames(cv_df) <- c("Suitability", "x", "y")
+(mapp_cv = ggplot(data=cv_df) +
+    geom_tile(aes(x=x, y=y, fill=Suitability)) +
+    coord_quickmap() +
+    theme_minimal() +
+    scale_fill_gradientn(colors=c('violet', 'darkblue', 'grey80', 'darkred', 'darkorange'),
+                         na.value='black',
+                         limits=c(0,1)) +
+    theme(panel.background = element_rect(fill='black')) +
+    labs(x="Longitude", y="Latitude", title='SARS-CoV2 Distribution Model')
+
+)
+
+pop_spdf <- as(dens.m, "SpatialPixelsDataFrame")
+pop_df <- as.data.frame(pop_spdf)
+colnames(pop_df) <- c("Suitability", "x", "y")
+(mapp_pop = ggplot(data=pop_df) +
+    geom_tile(aes(x=x, y=y, fill=Suitability)) +
+    coord_quickmap() +
+    theme_minimal() +
+    scale_fill_gradientn(colors=c('violet', 'darkblue', 'grey80', 'darkred', 'darkorange'),
+                         na.value='black',
+                         limits=c(0,1)) +
+    theme(panel.background = element_rect(fill='black')) +
+    labs(x="Longitude", y="Latitude", title='Human Population Distribution Model')
+  
+)
+
+mapfig = plot_grid(mapp_cv, mapp_pop, nrow=2, ncol=1)
+ggsave(mapfig, file = 'map_fig3.png', height = 7, width=5, dpi=500 )
 
 
 #niche equivalency
@@ -139,7 +174,7 @@ dat2 = rbind(extract2, extbg2)
 
 
 pca.env <- dudi.pca(
-  rbind(dat1, dat2)[,3:9],
+  rbind(dat1, dat2)[,3:(2+nlayers(Env))],
   scannf=FALSE,
   nf=2
 )
@@ -151,14 +186,14 @@ scores.globclim<-pca.env$li # PCA scores for the whole study area
 scores.globclim<-pca.env$li # PCA scores for the whole study area (all points)
 
 scores.sp1 <- suprow(pca.env,
-                     extract1[which(extract1[,10]==1),3:9])$li # PCA scores for the species 1 distribution
+                     extract1[which(extract1[,(3+nlayers(Env))]==1),3:(2+nlayers(Env))])$li # PCA scores for the species 1 distribution
 
 scores.sp2 <- suprow(pca.env,
-                     extract2[which(extract2[,10]==1),3:9])$li # PCA scores for the species 1 distribution
+                     extract2[which(extract2[,(3+nlayers(Env))]==1),3:(2+nlayers(Env))])$li # PCA scores for the species 1 distribution
 
-scores.clim1 <- suprow(pca.env,dat1[,3:9])$li # PCA scores for the whole native study area
+scores.clim1 <- suprow(pca.env,dat1[,3:(2+nlayers(Env))])$li # PCA scores for the whole native study area
 
-scores.clim2 <- suprow(pca.env,dat2[,3:9])$li # PCA scores for the whole native study area
+scores.clim2 <- suprow(pca.env,dat2[,3:(2+nlayers(Env))])$li # PCA scores for the whole native study area
 
 
 grid.clim1 <- ecospat.grid.clim.dyn(
