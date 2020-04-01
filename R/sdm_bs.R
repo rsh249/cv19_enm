@@ -44,6 +44,8 @@ set.eval = ENMevaluate(
   #RMvalues = c(0.5, 2)
 )
 
+write.csv(set.eval@results, file ='ENMeval_results.csv')
+
 
 best = which(set.eval@results[, 'AICc'] == min(na.omit(set.eval@results[, 'AICc'])))
 ev.set <-

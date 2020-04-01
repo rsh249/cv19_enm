@@ -44,7 +44,7 @@ set.eval = ENMevaluate(
   #RMvalues = c(0.5, 2)
 )
 
-
+write.csv(set.eval@results, file ='ENMeval_results_raw.csv')
 best = which(set.eval@results[, 'AICc'] == min(na.omit(set.eval@results[, 'AICc'])))
 ev.set <-
   evaluate(occ[, c('V6', 'V5')], set.eval@bg.pts, set.eval@models[[best]], march_clim)
@@ -451,7 +451,7 @@ sim.test <- test_ecospat.niche.similarity.test(grid.clim1, grid.clim2,
                                                alternative = "greater",
                                                rand.type=2) 
 
-png('overlap_graphic_raw.png', height=7, width = 5, units='in', res=500)
+pdf('overlap_graphic_raw.png', height=7, width = 5, units='in', res=500)
 par(mfrow=c(2,1))
 ecospat.plot.overlap.test(eq.test, "D", "Overlap")
 mtext("A", side = 3, adj = 0.05, line = -1.3)
@@ -459,7 +459,7 @@ ecospat.plot.overlap.test(sim.test, "D", "Similarity")
 mtext("B", side = 3, adj = 0.05, line = -1.3)
 dev.off()
 
-png('overlap_graphic_raw.pdf', height=7, width = 5, units='in', res=500)
+pdf('overlap_graphic_raw.pdf', height=7, width = 5)
 par(mfrow=c(2,1))
 ecospat.plot.overlap.test(eq.test, "D", "Overlap")
 mtext("A", side = 3, adj = 0.05, line = -1.3)

@@ -435,7 +435,7 @@ ud3 = ggplot(cv_ex %>% filter(date == last_day - 28) %>% filter(!is.na(pop))) +
 
 ucp = plot_grid(ua3, ua2, ua1, ubb3, ubb2, ubb1, ub3, ub2, ub1, uc3, uc2, uc1, ud3, ud2, ud1, ncol=3, nrow=5, labels="AUTO")
 
-ggsave(cp, file='compare_2wk_notweighted.png', height=9, width=9, dpi=600)
-ggsave(cp, file='compare_2wk_notweighted.pdf', height=9, width=9, dpi=600)
+ggsave(ucp, file='compare_2wk_notweighted.png', height=9, width=9, dpi=600)
+ggsave(ucp, file='compare_2wk_notweighted.pdf', height=9, width=9, dpi=600)
 
 
