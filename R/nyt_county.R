@@ -17,7 +17,7 @@ cv_dat = read.csv('https://raw.githubusercontent.com/nytimes/covid-19-data/maste
                         state)) %>%
   mutate(date = as.Date(date))
 #last_day = last(cv_dat$date)
-last_day = "2020-03-30"
+last_day = as.Date("2020-03-30")
 
 #get geodata for US municipalities
 if(file.exists("data/US.zip")){} else{
@@ -172,6 +172,7 @@ ggplot(data=cv_new %>% filter(date==last_day)) +
 
 pop_map = plot_grid(pop_raw, pop_scale, nrow=1, ncol=2, labels='AUTO')
 ggsave(pop_map, file='cases_v_pop.png')
+ggsave(pop_map, file='cases_v_pop.pdf')
 
 all = popCounty %>%
   left_join(US, by=c('county', 'state')) %>%
@@ -309,7 +310,8 @@ d3 = ggplot(cv_ex %>% filter(date == last_day - 28) %>% filter(!is.na(pop))) +
 
 cp = plot_grid(a3, a2, a1, bb3, bb2, bb1, b3, b2, b1, c3, c2, c1, d3, d2, d1, ncol=3, nrow=5, labels="AUTO")
 
-ggsave(cp, file='compare_2wk.svg', height=9, width=9, dpi=600)
+ggsave(cp, file='compare_2wk.png', height=9, width=9, dpi=600)
+ggsave(cp, file='compare_2wk.pdf', height=9, width=9, dpi=600)
 
 # make unweighted figures
 #plot
@@ -433,6 +435,7 @@ ud3 = ggplot(cv_ex %>% filter(date == last_day - 28) %>% filter(!is.na(pop))) +
 
 ucp = plot_grid(ua3, ua2, ua1, ubb3, ubb2, ubb1, ub3, ub2, ub1, uc3, uc2, uc1, ud3, ud2, ud1, ncol=3, nrow=5, labels="AUTO")
 
-ggsave(cp, file='compare_2wk_notweighted.svg', height=9, width=9, dpi=600)
+ggsave(cp, file='compare_2wk_notweighted.png', height=9, width=9, dpi=600)
+ggsave(cp, file='compare_2wk_notweighted.pdf', height=9, width=9, dpi=600)
 
 
