@@ -2,7 +2,6 @@ source('R/nyt_county.R')
 source('R/port_ecospat_parallel.R')
 library(ENMeval)
 library(maxnet)
-library(cRacle)
 library(maptools)
 library(parallel)
 
@@ -451,7 +450,7 @@ sim.test <- test_ecospat.niche.similarity.test(grid.clim1, grid.clim2,
                                                alternative = "greater",
                                                rand.type=2) 
 
-pdf('overlap_graphic_raw.png', height=7, width = 5, units='in', res=500)
+pdf('overlap_graphic_raw.png', height=7, width = 5)
 par(mfrow=c(2,1))
 ecospat.plot.overlap.test(eq.test, "D", "Overlap")
 mtext("A", side = 3, adj = 0.05, line = -1.3)
