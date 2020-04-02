@@ -24,10 +24,10 @@ occ2 = occ %>%
   filter(!is.na(scale)) %>%
   expand(count = seq(1:(scale)))
 
-bg = rad_bg(as.data.frame(unique(cv_ex[,c('V6', 'V5')])), 
-            march_clim, 
-            radius = 750, 
-            n=20)
+#bg = rad_bg(as.data.frame(unique(cv_ex[,c('V6', 'V5')])), 
+#            march_clim, 
+#            radius = 750, 
+#            n=20)
 bg <- as(march_clim[[1]], "SpatialPixelsDataFrame")@coords
 bg <- bg[sample(1:nrow(bg), size = nrow(occ2), replace=F),]
 
