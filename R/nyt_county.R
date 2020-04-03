@@ -600,3 +600,63 @@ ucp = plot_grid(ua3, ua2, ua1,
 
 ggsave(ucp, file='FigureS1.png', height=12, width=9, dpi=300)
 ggsave(ucp, file='FigureS1.pdf', height=12, width=9, dpi=300)
+
+
+## coninue the embarassing lack of loops here
+# more lines of copied code to extract densities from the graphs above and do KS tests
+
+stat_coll = data.frame(var=character(), 
+                       w.testp=numeric(), 
+                       w.testp.adjust = numeric(), 
+                       w.test_stat=numeric(), 
+                       KSp = numeric(), 
+                       KSp.adjust = numeric(), 
+                       KStest_stat=numeric(),
+                       scv2.n = numeric(), 
+                       pop.n=numeric(), 
+                       stringsAsFactors = F)
+
+#create vector weighted of ggplots
+scaled_plots = list(a3,  
+                 bb3, 
+                 b3,  
+                 cc3, 
+                 c3,  
+                 cd3, 
+                 d3)
+scaled_varnames = c('tavg',
+                    'tmax',
+                    'tmin',
+                    'prec',
+                    'srad',
+                    'wind',
+                    'vapr')
+  
+
+#start loop
+for(i in 1:length(scaled_plots)) {
+  pa1 = ggplot_build(scaled_plots[[i]])
+  k.test = ks.test(pa1$data[[1]]$density, pa1$data[[2]]$density)
+  w.test = wilcox.test(pa1$data[[1]]$density, pa1$data[[2]]$density, paired =
+                         F)
+  p.adj = p.adjust(w.test$p.value,
+                   method = 'holm',
+                   n = ncol(cv_extr_pres))
+  ksp.adj = p.adjust(k.test$p.value,
+                     method = 'holm',
+                     n = ncol(cv_extr_pres))
+  
+  
+  stat_coll[i,] = c(
+    scaled_varnames[i],
+    w.test$p.value,
+    p.adj,
+    w.test$statistic,
+    k.test$p.value,
+    ksp.adj,
+    k.test$statistic,
+    nrow(cv_new),
+    nrow(all_ex2)
+  )
+}
+write.table(stat_coll, file='scaled_stats.csv', sep=',')
