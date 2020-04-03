@@ -149,13 +149,21 @@ dens.m = predict(march_clim_sub_mask, dens_mod, clamp=T, type = 'cloglog')
 #stats tests
 cv_extr_pres = maxextr[maxmatr[,'pres']==1,]
 pop_extr_pres = densextr[densmatr[,'pres']==1,]
-stat_coll = data.frame(var=character(), p=numeric(), p.adjust = numeric(), test_stat=numeric(), cv.n = numeric(), pop.n=numeric(), stringsAsFactors = F)
+stat_coll = data.frame(var=character(), 
+                       Up=numeric(), Up.adjust = numeric(), Utest_stat=numeric(), 
+                       KSp = numeric(), KSp.adjust = numeric(), KStest_stat=numeric(),
+                       cv.n = numeric(), pop.n=numeric(), stringsAsFactors = F)
 for(i in 1:ncol(cv_extr_pres)){
   cv.var = cv_extr_pres[,i]
   pop.var = pop_extr_pres[,i]
   wtest = wilcox.test(cv.var, pop.var, paired=F)
+  kstest = ks.test(cv.var, pop.var)
   p.adj = p.adjust(wtest$p.value, method = 'holm', n = ncol(cv_extr_pres))
-  stat_coll[i,] = c(colnames(cv_extr_pres)[[i]], wtest$p.value, p.adj, wtest$statistic, length(cv.var), length(pop.var))
+  ksp.adj = p.adjust(kstest$p.value, method = 'holm', n = ncol(cv_extr_pres))
+  
+  stat_coll[i,] = c(colnames(cv_extr_pres)[[i]], wtest$p.value, p.adj, wtest$statistic, 
+                    kstest$p.value, ksp.adj, kstest$statistic, 
+                    length(cv.var), length(pop.var))
 }
 write.table(stat_coll, file='scaled_stats.csv', sep=',')
 
