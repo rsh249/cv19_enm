@@ -6,7 +6,7 @@ library(cRacle)
 library(maptools)
 library(parallel)
 nclus=24
-
+rasterOptions(maxmemory=4e+11)
 varnum = c(1,2,4,6,7)
 mc2 = march_clim
 march_clim_sub = march_clim[[varnum]]
@@ -146,14 +146,15 @@ dens.m = predict(march_clim_sub_mask, dens_mod, clamp=T, type = 'cloglog')
 #stats tests
 cv_extr_pres = maxextr[maxmatr[,'pres']==1,]
 pop_extr_pres = densextr[densmatr[,'pres']==1,]
-stat_coll = data.frame(var=character(), p=numeric(), cv.n = numeric(), pop.n=numeric(), stringsAsFactors = F)
+stat_coll = data.frame(var=character(), p=numeric(), p.adjust = numeric(), test_stat=numeric(), cv.n = numeric(), pop.n=numeric(), stringsAsFactors = F)
 for(i in 1:ncol(cv_extr_pres)){
-  cv.var = cv_extr_pres[,1]
-  pop.var = pop_extr_pres[,1]
-  wtest = wilcox.test(cv.var, pop.var)
-  stat_coll[i,] = c(colnames(cv_extr_pres)[[i]], wtest$p.value, length(cv.var), length(pop.var))
+  cv.var = cv_extr_pres[,i]
+  pop.var = pop_extr_pres[,i]
+  wtest = wilcox.test(cv.var, pop.var, paired=F)
+  p.adj = p.adjust(wtest$p.value, method = 'holm', n = ncol(cv_extr_pres))
+  stat_coll[i,] = c(colnames(cv_extr_pres)[[i]], wtest$p.value, p.adj, wtest$statistic, length(cv.var), length(pop.var))
 }
-write.table(stat_coll, file='scaled_stats.csv', sep=',')
+write.table(stat_coll, file='raw_stats.csv', sep=',')
 
 
 #plot SDMs
@@ -189,8 +190,8 @@ colnames(pop_df) <- c("Suitability", "x", "y")
 )
 
 mapfig = plot_grid(mapp_cv, mapp_pop, nrow=2, ncol=1, labels='AUTO')
-ggsave(mapfig, file = 'Figure3.png', height = 7, width=5, dpi=500 )
-ggsave(mapfig, file = 'Figure3.pdf', height = 7, width=5, dpi=500 )
+ggsave(mapfig, file = 'FigureS2.png', height = 7, width=5, dpi=500 )
+ggsave(mapfig, file = 'FigureS2.pdf', height = 7, width=5, dpi=500 )
 
 
 #niche equivalency
