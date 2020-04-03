@@ -9,7 +9,7 @@ library(parallel)
 
 varnum = c(1,2,4,6,7)
 mc2 = march_clim
-march_clim = march_clim[[varnum]]
+march_clim_sub = march_clim[[varnum]]
 #test collinearity of these ^?
 
 # get climate data for each county and plot weighted by popsize
@@ -26,16 +26,16 @@ occ2 = occ %>%
   expand(count = seq(1:(scale)))
 
 #bg = rad_bg(as.data.frame(unique(cv_ex[,c('V6', 'V5')])), 
-#            march_clim, 
+#            march_clim_sub, 
 #            radius = 750, 
 #            n=20)
-bg <- as(march_clim[[1]], "SpatialPixelsDataFrame")@coords
+bg <- as(march_clim_sub[[1]], "SpatialPixelsDataFrame")@coords
 bg <- bg[sample(1:nrow(bg), size = nrow(occ2), replace=F),]
 
 fc = c("L", "LQ")
 set.eval = ENMevaluate(
   occ=occ2[,c('V6', 'V5')],
-  env=march_clim,
+  env=march_clim_sub,
   rasterPreds = TRUE,
   parallel = TRUE,
   fc = fc,
@@ -52,7 +52,7 @@ write.csv(set.eval@results, file ='ENMeval_results.csv')
 
 best = which(set.eval@results[, 'AICc'] == min(na.omit(set.eval@results[, 'AICc'])))
 ev.set <-
-  evaluate(occ[, c('V6', 'V5')], set.eval@bg.pts, set.eval@models[[best]], march_clim)
+  evaluate(occ[, c('V6', 'V5')], set.eval@bg.pts, set.eval@models[[best]], march_clim_sub)
 thr.set <- threshold(ev.set)
 
 # For picking model parameters on the complete set
@@ -66,13 +66,22 @@ fc1 = best_arr[[1]][1:(length(best_arr[[1]]) - 1)]
 maxmatr = rbind(set.eval@occ.pts, set.eval@bg.pts)
 pres = c(rep(1, nrow(set.eval@occ.pts)), rep(0, nrow(set.eval@bg.pts)))
 maxmatr = cbind(maxmatr, pres)
-maxextr = raster::extract(march_clim, maxmatr[, c('LON', 'LAT')], buffer= 5000)
+maxextr = raster::extract(mc2, maxmatr[, c('LON', 'LAT')], buffer= 5000)
+mextr_fin = apply(maxextr[[1]], 2, mean)
+for(i in 2:length(maxextr)){
+  if(length(maxextr[[i]])>1){
+    mextr_fin=rbind(mextr_fin, apply(maxextr[[i]], 2, mean))
+  } else {
+    mextr_fin=rbind(mextr_fin, rep(NA, nlayers(mc2)))
+  }
+}
+
 best_mod = maxnet(
   p = maxmatr[, 'pres'],
-  data = as.data.frame(maxextr),
+  data = as.data.frame(maxextr[,varnum]),
   maxnet.formula(
     p = maxmatr[, 'pres'],
-    data = as.data.frame(maxextr),
+    data = as.data.frame(maxextr[,varnum]),
     classes = stringr::str_to_lower(fc1)
   ),
   regmult = as.numeric(rm)
@@ -82,10 +91,10 @@ best_mod = maxnet(
 data(wrld_simpl)
 SPDF <- subset(wrld_simpl, NAME=="United States")
 ## crop and mask
-r2 <- crop(march_clim, extent(SPDF))
-march_clim_mask <- mask(r2, SPDF)
+r2 <- crop(march_clim_sub, extent(SPDF))
+march_clim_sub_mask <- mask(r2, SPDF)
 
-m = predict(march_clim_mask, best_mod, clamp=T, type = 'cloglog')
+m = predict(march_clim_sub_mask, best_mod, clamp=T, type = 'cloglog')
 
 #predict SDM for human density
 
@@ -95,30 +104,29 @@ popdens = cv_new %>%
   expand(count = seq(1:(pop/1000))) %>%
   rename(LON=V6) %>%
   rename(LAT=V5)
-save_na = raster::extract(march_clim, popdens[, c('LON', 'LAT')], buffer= 5000) 
+save_na = raster::extract(march_clim_sub, popdens[, c('LON', 'LAT')]) 
 save_na = cbind(popdens, save_na)
 save_na = na.omit(save_na)
 densmatr = rbind(as.data.frame(save_na[,c('LON', 'LAT')]), set.eval@bg.pts)
 pres = (c(rep(1, nrow(save_na[,c('LON', 'LAT')])), rep(0, nrow(set.eval@bg.pts))))
 densmatr = cbind(densmatr, pres) 
-densextr = raster::extract(march_clim, densmatr[, c('LON', 'LAT')])
+densextr = raster::extract(march_clim_sub, densmatr[, c('LON', 'LAT')], buffer=5000)
 dens_mod = maxnet(
   p = densmatr[, 'pres'],
-  data = as.data.frame(densextr),
+  data = as.data.frame(densextr[,varnum]),
   maxnet.formula(
     p = densmatr[, 'pres'],
-    data = as.data.frame(densextr),
+    data = as.data.frame(densextr[,varnum]),
     classes = stringr::str_to_lower(fc1)
   ),
   regmult = as.numeric(rm)
 )
 
-dens.m = predict(march_clim_mask, dens_mod, clamp=T, type = 'cloglog')
+dens.m = predict(march_clim_sub_mask, dens_mod, clamp=T, type = 'cloglog')
 
 #stats tests
-cv_extr_pres = raster::extract(mc2, maxmatr[maxmatr[,'pres']==1, c('LON', 'LAT')],buffer= 5000)
-pop_extr_pres = raster::extract(mc2, densmatr[densmatr[,'pres']==1, c('LON', 'LAT')], buffer = 5000)
-
+cv_extr_pres = maxextr[maxmatr[,'pres']==1,]
+pop_extr_pres = densextr[densmatr[,'pres']==1,]
 stat_coll = data.frame(var=character(), p=numeric(), cv.n = numeric(), pop.n=numeric(), stringsAsFactors = F)
 for(i in 1:ncol(cv_extr_pres)){
   cv.var = cv_extr_pres[,1]
@@ -126,6 +134,7 @@ for(i in 1:ncol(cv_extr_pres)){
   wtest = wilcox.test(cv.var, pop.var)
   stat_coll[i,] = c(colnames(cv_extr_pres)[[i]], wtest$p.value, length(cv.var), length(pop.var))
 }
+write.table(stat_coll, file='scaled_stats.csv', sep=',')
 
 
 #plot SDMs
@@ -161,13 +170,14 @@ colnames(pop_df) <- c("Suitability", "x", "y")
 )
 
 mapfig = plot_grid(mapp_cv, mapp_pop, nrow=2, ncol=1, labels='AUTO')
-ggsave(mapfig, file = 'map_fig3.png', height = 7, width=5, dpi=500 )
+ggsave(mapfig, file = 'Figure3.png', height = 7, width=5, dpi=500 )
+ggsave(mapfig, file = 'Figure3.pdf', height = 7, width=5, dpi=500 )
 
 
 #niche equivalency
 library(ecospat)
 library(ENMTools)
-Env = march_clim
+Env = march_clim_sub
 occd1 = densmatr[, c('LON', 'LAT')]
 occd2 = maxmatr[, c('LON', 'LAT')]
 
@@ -245,7 +255,7 @@ sim.test <- test_ecospat.niche.similarity.test(grid.clim1, grid.clim2,
                                           alternative = "greater",
                                           rand.type=2) 
 
-png('overlap_graphic.png', height=7, width = 5, units='in', res=500)
+png('Figure4.png', height=7, width = 5, units='in', res=500)
 par(mfrow=c(2,1))
 ecospat.plot.overlap.test(eq.test, "D", "Overlap")
 mtext("A", side = 3, adj = 0.05, line = -1.3)
@@ -254,7 +264,13 @@ mtext("B", side = 3, adj = 0.05, line = -1.3)
 dev.off()
 
 
-  
+pdf('Figure4.pdf', height=7, width = 5)
+par(mfrow=c(2,1))
+ecospat.plot.overlap.test(eq.test, "D", "Overlap")
+mtext("A", side = 3, adj = 0.05, line = -1.3)
+ecospat.plot.overlap.test(sim.test, "D", "Similarity")
+mtext("B", side = 3, adj = 0.05, line = -1.3)
+dev.off()
 
 
 
