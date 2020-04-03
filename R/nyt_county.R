@@ -180,10 +180,11 @@ pearson.test.percap = cor.test(pop_today$cases/pop_today$pop, pop_today$pop, met
 spearman.test.percap = cor.test(pop_today$cases/pop_today$pop, pop_today$pop, method='spearman')
 
 
-fileConn<-file("correlations.txt")
-writeLines(c("pearson", pearson.test), fileConn)
-writeLines(c("spearman", spearman.test), fileConn)
-close(fileConn)
+cat(c("pearson raw", as.character(pearson.test), '\n'), file = 'correlation.txt', sep = '\n')
+cat(c("spearman raw", as.character(spearman.test), '\n'), file = 'correlation.txt', append=T, sep = '\n')
+cat(c("pearson percap", as.character(pearson.test.percap), '\n'), file = 'correlation.txt', append=T, sep = '\n')
+cat(c("spearman percap", as.character(spearman.test.percap), '\n'), file = 'correlation.txt', append = T, sep = '\n')
+
 
 
 all = popCounty %>%
@@ -309,6 +310,60 @@ c3 = ggplot(cv_ex %>% filter(date == last_day - 28) %>% filter(!is.na(pop))) +
   xlab('Solar Radiation') +
   ylab('Density')
 
+cc1 = ggplot(cv_ex %>% filter(date == last_day) %>% filter(!is.na(pop))) +
+  geom_density(aes(x=wc2.1_2.5m_prec_03, weight=(cases/pop)/sum(cases/pop)), colour='darkred', fill='darkred', alpha=0.1)+
+  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_prec_03, weight=pop/sum(pop)), colour='darkblue', fill='darkblue', alpha=0.1) +
+  theme_minimal() + 
+  ylim(c(0, 0.015)) +
+  xlab('Precipitation (mm)') +
+  ylab('Density')
+
+
+
+cc2 = ggplot(cv_ex %>% filter(date == last_day - 14) %>% filter(!is.na(pop))) +
+  geom_density(aes(x=wc2.1_2.5m_prec_03, weight=(cases/pop)/sum(cases/pop)), colour='darkred', fill='darkred', alpha=0.1)+
+  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_prec_03, weight=pop/sum(pop)), colour='darkblue', fill='darkblue', alpha=0.1) +
+  theme_minimal() + 
+  ylim(c(0, 0.015)) +
+  xlab('Precipitation (mm)') +
+  ylab('Density')
+
+cc3 = ggplot(cv_ex %>% filter(date == last_day - 28) %>% filter(!is.na(pop))) +
+  geom_density(aes(x=wc2.1_2.5m_prec_03, weight=(cases/pop)/sum(cases/pop)), colour='darkred', fill='darkred', alpha=0.1)+
+  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_prec_03, weight=pop/sum(pop)), colour='darkblue', fill='darkblue', alpha=0.1) +
+  theme_minimal() + 
+  ylim(c(0, 0.015)) +  
+  xlab('Precipitation (mm)') +
+  ylab('Density')
+
+
+cd1 = ggplot(cv_ex %>% filter(date == last_day) %>% filter(!is.na(pop))) +
+  geom_density(aes(x=wc2.1_2.5m_wind_03, weight=(cases/pop)/sum(cases/pop)), colour='darkred', fill='darkred', alpha=0.1)+
+  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_wind_03, weight=pop/sum(pop)), colour='darkblue', fill='darkblue', alpha=0.1) +
+  theme_minimal() + 
+  ylim(c(0, 0.75)) +
+  xlab('Wind Speed (m/s)') +
+  ylab('Density')
+
+
+
+cd2 = ggplot(cv_ex %>% filter(date == last_day - 14) %>% filter(!is.na(pop))) +
+  geom_density(aes(x=wc2.1_2.5m_wind_03, weight=(cases/pop)/sum(cases/pop)), colour='darkred', fill='darkred', alpha=0.1)+
+  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_wind_03, weight=pop/sum(pop)), colour='darkblue', fill='darkblue', alpha=0.1) +
+  theme_minimal() + 
+  ylim(c(0, 0.75)) +
+  xlab('Wind Speed (m/s)') +
+  ylab('Density')
+
+cd3 = ggplot(cv_ex %>% filter(date == last_day - 28) %>% filter(!is.na(pop))) +
+  geom_density(aes(x=wc2.1_2.5m_wind_03, weight=(cases/pop)/sum(cases/pop)), colour='darkred', fill='darkred', alpha=0.1)+
+  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_wind_03, weight=pop/sum(pop)), colour='darkblue', fill='darkblue', alpha=0.1) +
+  theme_minimal() + 
+  ylim(c(0, 0.75)) +
+  xlab('Wind Speed (m/s)') +
+  ylab('Density')
+
+
 d1 = ggplot(cv_ex %>% filter(date == last_day) %>% filter(!is.na(pop))) +
   geom_density(aes(x=wc2.1_2.5m_vapr_03, weight=(cases/pop)/sum(cases/pop)), colour='darkred', fill='darkred', alpha=0.1)+
   geom_density(data=all_ex2, aes(x=wc2.1_2.5m_vapr_03, weight=pop/sum(pop)), colour='darkblue', fill='darkblue', alpha=0.1) +
@@ -335,10 +390,16 @@ d3 = ggplot(cv_ex %>% filter(date == last_day - 28) %>% filter(!is.na(pop))) +
   xlab('Water Vapor Pressure (kPa)') +
   ylab('Density')
 
-cp = plot_grid(a3, a2, a1, bb3, bb2, bb1, b3, b2, b1, c3, c2, c1, d3, d2, d1, ncol=3, nrow=5, labels="AUTO")
+cp = plot_grid(a3, a2, a1, 
+               bb3, bb2, bb1, 
+               b3, b2, b1, 
+               cc3, cc2, cc1,
+               c3, c2, c1, 
+               cd3, cd2, cd1,
+               d3, d2, d1, ncol=3, nrow=7, labels="AUTO")
 
-ggsave(cp, file='compare_2wk.png', height=9, width=9, dpi=600)
-ggsave(cp, file='compare_2wk.pdf', height=9, width=9, dpi=600)
+ggsave(cp, file='compare_2wk.png', height=12, width=9, dpi=300)
+ggsave(cp, file='compare_2wk.pdf', height=12, width=9, dpi=300)
 
 # make unweighted figures
 #plot
