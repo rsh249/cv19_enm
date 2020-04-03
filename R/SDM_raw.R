@@ -60,7 +60,7 @@ fc1 = best_arr[[1]][1:(length(best_arr[[1]]) - 1)]
 maxmatr = rbind(set.eval@occ.pts, set.eval@bg.pts)
 pres = c(rep(1, nrow(set.eval@occ.pts)), rep(0, nrow(set.eval@bg.pts)))
 maxmatr = cbind(maxmatr, pres)
-maxextr = raster::extract(march_clim, maxmatr[, c('LON', 'LAT')])
+maxextr = raster::extract(march_clim, maxmatr[, c('LON', 'LAT')], buffer= 5000)
 best_mod = maxnet(
   p = maxmatr[, 'pres'],
   data = as.data.frame(maxextr),
@@ -95,7 +95,7 @@ save_na = na.omit(save_na)
 densmatr = rbind(as.data.frame(save_na[,c('LON', 'LAT')]), set.eval@bg.pts)
 pres = (c(rep(1, nrow(save_na[,c('LON', 'LAT')])), rep(0, nrow(set.eval@bg.pts))))
 densmatr = cbind(densmatr, pres) 
-densextr = raster::extract(march_clim, densmatr[, c('LON', 'LAT')])
+densextr = raster::extract(march_clim, densmatr[, c('LON', 'LAT')], buffer= 5000)
 dens_mod = maxnet(
   p = densmatr[, 'pres'],
   data = as.data.frame(densextr),

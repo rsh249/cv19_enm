@@ -150,29 +150,41 @@ cv_ex = cbind(as.data.frame(cv_new), as.data.frame(cv_fin))
 #plot scaling of cases/pop and pop/sum(pop)
 ggplot(data=cv_new %>% filter(date==last_day)) +
   geom_point(aes(x=pop, y=(cases/pop)/sum(cases/pop, na.rm=T))) 
-
-(pop_raw = ggplot(data=cv_new %>% filter(date==last_day)) +
+pop_today = cv_new %>% filter(date==last_day) %>% filter(pop < 8000000)
+(pop_raw = ggplot(data=pop_today) +
   geom_point(aes(x=pop/1000000, y=cases, alpha=0.2)) +
   scale_y_log10() + 
   theme_minimal() +
   theme(legend.position = 'none') +
-  xlab('Population (millions)') +
-  ylab('Cases') +
+  xlab('Human Population (millions)') +
+  ylab('SARS-CoV2 Cases') +
   ggtitle("Case Count and Locality Population")
 )
 
-(pop_scale = ggplot(data=cv_new %>% filter(date==last_day)) +
+(pop_scale = ggplot(data=pop_today) +
     geom_point(aes(x=pop/1000000, y=(cases/pop), alpha=0.2)) +
     theme_minimal() +
     theme(legend.position = 'none') +
-    xlab('Population (millions)') +
-    ylab('Cases / Total Population') +
+    xlab('Human Population (millions)') +
+    ylab('SARS-CoV2 Cases / Total Human Population') +
     ggtitle("Case Rate (per capita) and Locality Population")
 )
 
-pop_map = plot_grid(pop_raw, pop_scale, nrow=1, ncol=2, labels='AUTO')
-ggsave(pop_map, file='cases_v_pop.png')
-ggsave(pop_map, file='cases_v_pop.pdf')
+pop_map = plot_grid(pop_raw, pop_scale, nrow=2, ncol=1, labels='AUTO')
+ggsave(pop_map, file='cases_v_pop.png', height= 7.25, width=5)
+ggsave(pop_map, file='cases_v_pop.pdf', height= 7.25, width=5)
+
+pearson.test = cor.test(pop_today$cases, pop_today$pop, method='pearson')
+spearman.test = cor.test(pop_today$cases, pop_today$pop, method='spearman')
+pearson.test.percap = cor.test(pop_today$cases/pop_today$pop, pop_today$pop, method='pearson')
+spearman.test.percap = cor.test(pop_today$cases/pop_today$pop, pop_today$pop, method='spearman')
+
+
+fileConn<-file("correlations.txt")
+writeLines(c("pearson", pearson.test), fileConn)
+writeLines(c("spearman", spearman.test), fileConn)
+close(fileConn)
+
 
 all = popCounty %>%
   left_join(US, by=c('county', 'state')) %>%

@@ -8,6 +8,7 @@ library(parallel)
 
 
 varnum = c(1,2,4,6,7)
+mc2 = march_clim
 march_clim = march_clim[[varnum]]
 #test collinearity of these ^?
 
@@ -65,7 +66,7 @@ fc1 = best_arr[[1]][1:(length(best_arr[[1]]) - 1)]
 maxmatr = rbind(set.eval@occ.pts, set.eval@bg.pts)
 pres = c(rep(1, nrow(set.eval@occ.pts)), rep(0, nrow(set.eval@bg.pts)))
 maxmatr = cbind(maxmatr, pres)
-maxextr = raster::extract(march_clim, maxmatr[, c('LON', 'LAT')])
+maxextr = raster::extract(march_clim, maxmatr[, c('LON', 'LAT')], buffer= 5000)
 best_mod = maxnet(
   p = maxmatr[, 'pres'],
   data = as.data.frame(maxextr),
@@ -94,7 +95,7 @@ popdens = cv_new %>%
   expand(count = seq(1:(pop/1000))) %>%
   rename(LON=V6) %>%
   rename(LAT=V5)
-save_na = raster::extract(march_clim, popdens[, c('LON', 'LAT')]) 
+save_na = raster::extract(march_clim, popdens[, c('LON', 'LAT')], buffer= 5000) 
 save_na = cbind(popdens, save_na)
 save_na = na.omit(save_na)
 densmatr = rbind(as.data.frame(save_na[,c('LON', 'LAT')]), set.eval@bg.pts)
@@ -113,6 +114,19 @@ dens_mod = maxnet(
 )
 
 dens.m = predict(march_clim_mask, dens_mod, clamp=T, type = 'cloglog')
+
+#stats tests
+cv_extr_pres = raster::extract(mc2, maxmatr[maxmatr[,'pres']==1, c('LON', 'LAT')],buffer= 5000)
+pop_extr_pres = raster::extract(mc2, densmatr[densmatr[,'pres']==1, c('LON', 'LAT')], buffer = 5000)
+
+stat_coll = data.frame(var=character(), p=numeric(), cv.n = numeric(), pop.n=numeric(), stringsAsFactors = F)
+for(i in 1:ncol(cv_extr_pres)){
+  cv.var = cv_extr_pres[,1]
+  pop.var = pop_extr_pres[,1]
+  wtest = wilcox.test(cv.var, pop.var)
+  stat_coll[i,] = c(colnames(cv_extr_pres)[[i]], wtest$p.value, length(cv.var), length(pop.var))
+}
+
 
 #plot SDMs
 
