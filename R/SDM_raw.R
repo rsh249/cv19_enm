@@ -5,7 +5,7 @@ library(maxnet)
 library(cRacle)
 library(maptools)
 library(parallel)
-
+nclus=24
 
 varnum = c(1,2,4,6,7)
 mc2 = march_clim
@@ -38,7 +38,7 @@ set.eval = ENMevaluate(
   rasterPreds = TRUE,
   parallel = TRUE,
   fc = fc,
-  numCores = 48,
+  numCores = 24,
   method = 'checkerboard2',
   bg.coords = bg[,c('x', 'y')],
   clamp = TRUE,
@@ -46,7 +46,7 @@ set.eval = ENMevaluate(
   #RMvalues = c(0.5, 2)
 )
 
-write.csv(set.eval@results, file ='ENMeval_results.csv')
+write.csv(set.eval@results, file ='ENMeval_results_raw.csv')
 
 
 best = which(set.eval@results[, 'AICc'] == min(na.omit(set.eval@results[, 'AICc'])))
@@ -66,6 +66,20 @@ maxmatr = rbind(set.eval@occ.pts, set.eval@bg.pts)
 pres = c(rep(1, nrow(set.eval@occ.pts)), rep(0, nrow(set.eval@bg.pts)))
 maxmatr = cbind(maxmatr, pres)
 maxextr = raster::extract(mc2, maxmatr[, c('LON', 'LAT')], buffer= 5000)
+mextr_fin = apply(maxextr[[1]], 2, mean)
+for(i in 2:length(maxextr)){
+  if(length(maxextr[[i]])>1){
+    mextr_fin=rbind(mextr_fin, apply(maxextr[[i]], 2, mean))
+  } else {
+    mextr_fin=rbind(mextr_fin, rep(NA, nlayers(mc2)))
+  }
+}
+extr_all = cbind(maxmatr, mextr_fin)
+extr_all = na.omit(extr_all)
+maxmatr = extr_all[,1:3]
+maxextr = extr_all[,4:ncol(extr_all)]
+
+
 best_mod = maxnet(
   p = maxmatr[, 'pres'],
   data = as.data.frame(maxextr[,varnum]),
@@ -94,13 +108,28 @@ popdens = cv_new %>%
   expand(count = seq(1:(pop/1000))) %>%
   rename(LON=V6) %>%
   rename(LAT=V5)
-save_na = raster::extract(march_clim_sub, popdens[, c('LON', 'LAT')]) 
+save_na = raster::extract(march_clim_sub[[1]], popdens[, c('LON', 'LAT')]) 
 save_na = cbind(popdens, save_na)
 save_na = na.omit(save_na)
 densmatr = rbind(as.data.frame(save_na[,c('LON', 'LAT')]), set.eval@bg.pts)
 pres = (c(rep(1, nrow(save_na[,c('LON', 'LAT')])), rep(0, nrow(set.eval@bg.pts))))
 densmatr = cbind(densmatr, pres) 
-densextr = raster::extract(march_clim_sub, densmatr[, c('LON', 'LAT')], buffer=5000)
+densextr = raster::extract(mc2, densmatr[, c('LON', 'LAT')], buffer=5000)
+dextr_fin = apply(densextr[[1]], 2, mean)
+for(i in 2:length(densextr)){
+  if(length(densextr[[i]])>1){
+    dextr_fin=rbind(dextr_fin, apply(densextr[[i]], 2, mean))
+  } else {
+    dextr_fin=rbind(dextr_fin, rep(NA, nlayers(mc2)))
+  }
+}
+dextr_all = cbind(densmatr, dextr_fin)
+dextr_all = na.omit(dextr_all)
+densmatr = dextr_all[,1:3]
+densextr = dextr_all[,4:ncol(dextr_all)]
+
+
+
 dens_mod = maxnet(
   p = densmatr[, 'pres'],
   data = as.data.frame(densextr[,varnum]),
@@ -124,6 +153,7 @@ for(i in 1:ncol(cv_extr_pres)){
   wtest = wilcox.test(cv.var, pop.var)
   stat_coll[i,] = c(colnames(cv_extr_pres)[[i]], wtest$p.value, length(cv.var), length(pop.var))
 }
+write.table(stat_coll, file='scaled_stats.csv', sep=',')
 
 
 #plot SDMs
@@ -159,8 +189,8 @@ colnames(pop_df) <- c("Suitability", "x", "y")
 )
 
 mapfig = plot_grid(mapp_cv, mapp_pop, nrow=2, ncol=1, labels='AUTO')
-ggsave(mapfig, file = 'FigureS2.png', height = 7, width=5, dpi=500 )
-ggsave(mapfig, file = 'FigureS2.pdf', height = 7, width=5, dpi=500 )
+ggsave(mapfig, file = 'Figure3.png', height = 7, width=5, dpi=500 )
+ggsave(mapfig, file = 'Figure3.pdf', height = 7, width=5, dpi=500 )
 
 
 #niche equivalency
@@ -234,15 +264,16 @@ D.overlap
 
 eq.test <- test_ecospat.niche.equivalency.test(grid.clim1, grid.clim2,
                                                rep=500,
-                                               ncores=48,
+                                               ncores=nclus,
                                                alternative = "greater") ##rep = 1000 recommended for operational runs
 
 
 sim.test <- test_ecospat.niche.similarity.test(grid.clim1, grid.clim2,
                                                rep=500, 
-                                               ncores=48,
+                                               ncores=nclus,
                                                alternative = "greater",
                                                rand.type=2) 
+
 
 png('FigureS3.png', height=7, width = 5, units='in', res=500)
 par(mfrow=c(2,1))

@@ -5,7 +5,7 @@ library(maxnet)
 library(cRacle)
 library(maptools)
 library(parallel)
-
+nclus=24
 
 varnum = c(1,2,4,6,7)
 mc2 = march_clim
@@ -39,7 +39,7 @@ set.eval = ENMevaluate(
   rasterPreds = TRUE,
   parallel = TRUE,
   fc = fc,
-  numCores = 48,
+  numCores = nclus,
   method = 'checkerboard2',
   bg.coords = bg[,c('x', 'y')],
   clamp = TRUE,
@@ -75,6 +75,11 @@ for(i in 2:length(maxextr)){
     mextr_fin=rbind(mextr_fin, rep(NA, nlayers(mc2)))
   }
 }
+extr_all = cbind(maxmatr, mextr_fin)
+extr_all = na.omit(extr_all)
+maxmatr = extr_all[,1:3]
+maxextr = extr_all[,4:ncol(extr_all)]
+
 
 best_mod = maxnet(
   p = maxmatr[, 'pres'],
@@ -104,13 +109,28 @@ popdens = cv_new %>%
   expand(count = seq(1:(pop/1000))) %>%
   rename(LON=V6) %>%
   rename(LAT=V5)
-save_na = raster::extract(march_clim_sub, popdens[, c('LON', 'LAT')]) 
+save_na = raster::extract(march_clim_sub[[1]], popdens[, c('LON', 'LAT')]) 
 save_na = cbind(popdens, save_na)
 save_na = na.omit(save_na)
 densmatr = rbind(as.data.frame(save_na[,c('LON', 'LAT')]), set.eval@bg.pts)
 pres = (c(rep(1, nrow(save_na[,c('LON', 'LAT')])), rep(0, nrow(set.eval@bg.pts))))
 densmatr = cbind(densmatr, pres) 
-densextr = raster::extract(march_clim_sub, densmatr[, c('LON', 'LAT')], buffer=5000)
+densextr = raster::extract(mc2, densmatr[, c('LON', 'LAT')], buffer=5000)
+dextr_fin = apply(densextr[[1]], 2, mean)
+for(i in 2:length(densextr)){
+  if(length(densextr[[i]])>1){
+    dextr_fin=rbind(dextr_fin, apply(densextr[[i]], 2, mean))
+  } else {
+    dextr_fin=rbind(dextr_fin, rep(NA, nlayers(mc2)))
+  }
+}
+dextr_all = cbind(densmatr, dextr_fin)
+dextr_all = na.omit(dextr_all)
+densmatr = dextr_all[,1:3]
+densextr = dextr_all[,4:ncol(dextr_all)]
+
+
+
 dens_mod = maxnet(
   p = densmatr[, 'pres'],
   data = as.data.frame(densextr[,varnum]),
@@ -245,13 +265,13 @@ D.overlap
 
 eq.test <- test_ecospat.niche.equivalency.test(grid.clim1, grid.clim2,
                                           rep=500,
-                                          ncores=48,
+                                          ncores=nclus,
                                           alternative = "greater") ##rep = 1000 recommended for operational runs
 
 
 sim.test <- test_ecospat.niche.similarity.test(grid.clim1, grid.clim2,
                                           rep=500, 
-                                          ncores=48,
+                                          ncores=nclus,
                                           alternative = "greater",
                                           rand.type=2) 
 
