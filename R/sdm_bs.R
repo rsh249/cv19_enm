@@ -207,30 +207,20 @@ ggsave(mapfig, file = 'Figure3.pdf', height = 7, width=5, dpi=500 )
 
 #niche equivalency
 library(ecospat)
-library(ENMTools)
 Env = march_clim_sub
 occd1 = densmatr[, c('LON', 'LAT')]
 occd2 = maxmatr[, c('LON', 'LAT')]
 
-bg1 = set.eval@bg.pts
-bg2 = set.eval@bg.pts
-
 # Get environmental data
-extract1 = na.omit(cbind(occd1[,c('LON', 'LAT')], extract(Env, occd1[,c('LON', 'LAT')]), rep(1, nrow(occd1))))
-extract2 = na.omit(cbind(occd2[,c('LON', 'LAT')], extract(Env, occd2[,c('LON', 'LAT')]), rep(1, nrow(occd2))))
+extract1 = cbind(occd1, densextr[,varnum], densmatr[,'pres'])
+extract2 = cbind(occd2, maxextr[,varnum], maxmatr[,'pres'])
+
 
 colnames(extract1)[ncol(extract1)] = 'occ'
 colnames(extract2)[ncol(extract2)] = 'occ'
 
-extbg1 = na.omit(cbind(bg1, extract(Env, bg1), rep(0, nrow(bg1))))
-extbg2 = na.omit(cbind(bg2, extract(Env, bg2), rep(0, nrow(bg2))))
-
-colnames(extbg1)[ncol(extbg1)] = 'occ'
-colnames(extbg2)[ncol(extbg2)] = 'occ'
-
-dat1 = rbind(extract1, extbg1)
-dat2 = rbind(extract2, extbg2)
-
+dat1 = extract1
+dat2 = extract2
 
 pca.env <- dudi.pca(
   rbind(dat1, dat2)[,3:(2+nlayers(Env))],
@@ -272,7 +262,9 @@ grid.clim2 <- ecospat.grid.clim.dyn(
 
 D.overlap <- ecospat.niche.overlap (grid.clim1, grid.clim2, cor=T)$D 
 D.overlap
-####### test and visualize nich
+
+
+####### test and visualize niche
 
 eq.test <- test_ecospat.niche.equivalency.test(grid.clim1, grid.clim2,
                                           rep=500,

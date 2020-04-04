@@ -21,6 +21,7 @@ last_day = as.Date("2020-03-30")
 
 #get geodata for US municipalities
 if(file.exists("data/US.zip")){} else{
+  if(dir.exists('data')){} else {dir.create('data')}
   download.file('https://download.geonames.org/export/dump/US.zip', 'data/US.zip')
   system('unzip data/US.zip -d data')
 }

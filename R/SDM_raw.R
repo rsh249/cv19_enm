@@ -1,3 +1,4 @@
+
 source('R/nyt_county.R')
 source('R/port_ecospat_parallel.R')
 library(ENMeval)
@@ -6,7 +7,9 @@ library(cRacle)
 library(maptools)
 library(parallel)
 nclus=24
-rasterOptions(maxmemory=4e+11)
+rasterOptions(maxmemory=2e+11, memfrac=0.5, chunksize=2e+07)
+
+
 varnum = c(1,2,4,6,7)
 mc2 = march_clim
 march_clim_sub = march_clim[[varnum]]
@@ -38,7 +41,7 @@ set.eval = ENMevaluate(
   rasterPreds = TRUE,
   parallel = TRUE,
   fc = fc,
-  numCores = 24,
+  numCores = nclus,
   method = 'checkerboard2',
   bg.coords = bg[,c('x', 'y')],
   clamp = TRUE,
@@ -146,13 +149,21 @@ dens.m = predict(march_clim_sub_mask, dens_mod, clamp=T, type = 'cloglog')
 #stats tests
 cv_extr_pres = maxextr[maxmatr[,'pres']==1,]
 pop_extr_pres = densextr[densmatr[,'pres']==1,]
-stat_coll = data.frame(var=character(), p=numeric(), p.adjust = numeric(), test_stat=numeric(), cv.n = numeric(), pop.n=numeric(), stringsAsFactors = F)
+stat_coll = data.frame(var=character(),
+                       Up=numeric(), Up.adjust = numeric(), Utest_stat=numeric(),
+                       KSp = numeric(), KSp.adjust = numeric(), KStest_stat=numeric(),
+                       cv.n = numeric(), pop.n=numeric(), stringsAsFactors = F)
 for(i in 1:ncol(cv_extr_pres)){
   cv.var = cv_extr_pres[,i]
   pop.var = pop_extr_pres[,i]
   wtest = wilcox.test(cv.var, pop.var, paired=F)
+  kstest = ks.test(cv.var, pop.var)
   p.adj = p.adjust(wtest$p.value, method = 'holm', n = ncol(cv_extr_pres))
-  stat_coll[i,] = c(colnames(cv_extr_pres)[[i]], wtest$p.value, p.adj, wtest$statistic, length(cv.var), length(pop.var))
+  ksp.adj = p.adjust(kstest$p.value, method = 'holm', n = ncol(cv_extr_pres))
+  
+  stat_coll[i,] = c(colnames(cv_extr_pres)[[i]], wtest$p.value, p.adj, wtest$statistic,
+                    kstest$p.value, ksp.adj, kstest$statistic,
+                    length(cv.var), length(pop.var))
 }
 write.table(stat_coll, file='raw_stats.csv', sep=',')
 
@@ -196,30 +207,21 @@ ggsave(mapfig, file = 'FigureS2.pdf', height = 7, width=5, dpi=500 )
 
 #niche equivalency
 library(ecospat)
-library(ENMTools)
+
 Env = march_clim_sub
 occd1 = densmatr[, c('LON', 'LAT')]
 occd2 = maxmatr[, c('LON', 'LAT')]
 
-bg1 = set.eval@bg.pts
-bg2 = set.eval@bg.pts
-
 # Get environmental data
-extract1 = na.omit(cbind(occd1[,c('LON', 'LAT')], extract(Env, occd1[,c('LON', 'LAT')]), rep(1, nrow(occd1))))
-extract2 = na.omit(cbind(occd2[,c('LON', 'LAT')], extract(Env, occd2[,c('LON', 'LAT')]), rep(1, nrow(occd2))))
+extract1 = cbind(occd1, densextr[,varnum], densmatr[,'pres'])
+extract2 = cbind(occd2, maxextr[,varnum], maxmatr[,'pres'])
+
 
 colnames(extract1)[ncol(extract1)] = 'occ'
 colnames(extract2)[ncol(extract2)] = 'occ'
 
-extbg1 = na.omit(cbind(bg1, extract(Env, bg1), rep(0, nrow(bg1))))
-extbg2 = na.omit(cbind(bg2, extract(Env, bg2), rep(0, nrow(bg2))))
-
-colnames(extbg1)[ncol(extbg1)] = 'occ'
-colnames(extbg2)[ncol(extbg2)] = 'occ'
-
-dat1 = rbind(extract1, extbg1)
-dat2 = rbind(extract2, extbg2)
-
+dat1 = extract1
+dat2 = extract2
 
 pca.env <- dudi.pca(
   rbind(dat1, dat2)[,3:(2+nlayers(Env))],
@@ -261,7 +263,9 @@ grid.clim2 <- ecospat.grid.clim.dyn(
 
 D.overlap <- ecospat.niche.overlap (grid.clim1, grid.clim2, cor=T)$D 
 D.overlap
-####### test and visualize nich
+
+
+####### test and visualize niche
 
 eq.test <- test_ecospat.niche.equivalency.test(grid.clim1, grid.clim2,
                                                rep=500,
@@ -274,7 +278,6 @@ sim.test <- test_ecospat.niche.similarity.test(grid.clim1, grid.clim2,
                                                ncores=nclus,
                                                alternative = "greater",
                                                rand.type=2) 
-
 
 png('FigureS3.png', height=7, width = 5, units='in', res=500)
 par(mfrow=c(2,1))
