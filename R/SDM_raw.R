@@ -165,7 +165,7 @@ for(i in 1:ncol(cv_extr_pres)){
                     kstest$p.value, ksp.adj, kstest$statistic,
                     length(cv.var), length(pop.var))
 }
-write.table(stat_coll, file='raw_stats.csv', sep=',')
+#write.table(stat_coll, file='raw_stats.csv', sep=',')
 
 
 #plot SDMs

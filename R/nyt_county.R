@@ -405,10 +405,9 @@ ggsave(cp, file='Figure1.pdf', height=12, width=9, dpi=300)
 # make unweighted figures
 #plot
 ua1 = ggplot(cv_ex %>% filter(date == last_day) %>% filter(!is.na(pop))) +
-  geom_density(aes(x=wc2.1_2.5m_tavg_03), colour='darkred', fill='darkred', alpha=0.1)+
-  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_tavg_03), colour='darkblue', fill='darkblue', alpha=0.1) +
+  geom_density(aes(x=wc2.1_2.5m_tavg_03, weight=cases/sum(cases, na.rm=T)), colour='darkred', fill='darkred', alpha=0.1) +
+  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_tavg_03, weight=pop/sum(pop, na.rm=T)), colour='darkblue', fill='darkblue', alpha=0.1) +
   theme_minimal() + 
-  ylim(c(0, 0.09)) +
   xlab('Average Temperature (C)') +
   ylab('Density') + 
   ggtitle(last_day)
@@ -416,178 +415,158 @@ ua1 = ggplot(cv_ex %>% filter(date == last_day) %>% filter(!is.na(pop))) +
 
 
 ua2 = ggplot(cv_ex %>% filter(date == last_day - 14) %>% filter(!is.na(pop))) +
-  geom_density(aes(x=wc2.1_2.5m_tavg_03), colour='darkred', fill='darkred', alpha=0.1)+
-  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_tavg_03), colour='darkblue', fill='darkblue', alpha=0.1) +
+  geom_density(aes(x=wc2.1_2.5m_tavg_03, weight=cases/sum(cases, na.rm=T)), colour='darkred', fill='darkred', alpha=0.1)+
+  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_tavg_03, weight=pop/sum(pop, na.rm=T)), colour='darkblue', fill='darkblue', alpha=0.1) +
   theme_minimal() + 
-  ylim(c(0, 0.09)) +
   xlab('Average Temperature (C)') +
   ylab('Density') + 
   ggtitle(last_day - 14)
 
 
 ua3 = ggplot(cv_ex %>% filter(date == last_day - 28) %>% filter(!is.na(pop))) +
-  geom_density(aes(x=wc2.1_2.5m_tavg_03), colour='darkred', fill='darkred', alpha=0.1)+
-  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_tavg_03), colour='darkblue', fill='darkblue', alpha=0.1) +
+  geom_density(aes(x=wc2.1_2.5m_tavg_03, weight=cases/sum(cases, na.rm=T)), colour='darkred', fill='darkred', alpha=0.1)+
+  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_tavg_03, weight=pop/sum(pop, na.rm=T)), colour='darkblue', fill='darkblue', alpha=0.1) +
   theme_minimal() + 
-  ylim(c(0, 0.09)) +
   xlab('Average Temperature (C)') +
   ylab('Density') + 
   ggtitle(last_day - 28)
 
 ub1 = ggplot(cv_ex %>% filter(date == last_day) %>% filter(!is.na(pop))) +
-  geom_density(aes(x=wc2.1_2.5m_tmin_03), colour='darkred', fill='darkred', alpha=0.1)+
-  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_tmin_03), colour='darkblue', fill='darkblue', alpha=0.1) +
+  geom_density(aes(x=wc2.1_2.5m_tmin_03, weight=cases/sum(cases, na.rm=T)), colour='darkred', fill='darkred', alpha=0.1)+
+  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_tmin_03, weight=pop/sum(pop, na.rm=T)), colour='darkblue', fill='darkblue', alpha=0.1) +
   theme_minimal() + 
-  ylim(c(0,0.09)) +
   xlab('Min Temperature (C)') +
   ylab('Density')
 
 ub2 = ggplot(cv_ex %>% filter(date == last_day - 14) %>% filter(!is.na(pop))) +
-  geom_density(aes(x=wc2.1_2.5m_tmin_03), colour='darkred', fill='darkred', alpha=0.1)+
-  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_tmin_03), colour='darkblue', fill='darkblue', alpha=0.1) +
+  geom_density(aes(x=wc2.1_2.5m_tmin_03, weight=cases/sum(cases, na.rm=T)), colour='darkred', fill='darkred', alpha=0.1)+
+  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_tmin_03, weight=pop/sum(pop, na.rm=T)), colour='darkblue', fill='darkblue', alpha=0.1) +
   theme_minimal() + 
-  ylim(c(0, 0.09)) +
   xlab('Min Temperature (C)') +
   ylab('Density')
 
 ub3 = ggplot(cv_ex %>% filter(date == last_day - 28) %>% filter(!is.na(pop))) +
-  geom_density(aes(x=wc2.1_2.5m_tmin_03), colour='darkred', fill='darkred', alpha=0.1)+
-  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_tmin_03), colour='darkblue', fill='darkblue', alpha=0.1) +
+  geom_density(aes(x=wc2.1_2.5m_tmin_03, weight=cases/sum(cases, na.rm=T)), colour='darkred', fill='darkred', alpha=0.1)+
+  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_tmin_03, weight=pop/sum(pop, na.rm=T)), colour='darkblue', fill='darkblue', alpha=0.1) +
   theme_minimal() + 
-  ylim(c(0, 0.09)) +
   xlab('Min Temperature (C)') +
   ylab('Density')
 
 ubb1 = ggplot(cv_ex %>% filter(date == last_day) %>% filter(!is.na(pop))) +
-  geom_density(aes(x=wc2.1_2.5m_tmax_03), colour='darkred', fill='darkred', alpha=0.1)+
-  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_tmax_03), colour='darkblue', fill='darkblue', alpha=0.1) +
+  geom_density(aes(x=wc2.1_2.5m_tmax_03, weight=cases/sum(cases, na.rm=T)), colour='darkred', fill='darkred', alpha=0.1)+
+  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_tmax_03, weight=pop/sum(pop, na.rm=T)), colour='darkblue', fill='darkblue', alpha=0.1) +
   theme_minimal() + 
-  ylim(c(0, 0.09)) +
   xlab('Max Temparature (C)') +
   ylab('Density')
 
 
 
 ubb2 = ggplot(cv_ex %>% filter(date == last_day - 14) %>% filter(!is.na(pop))) +
-  geom_density(aes(x=wc2.1_2.5m_tmax_03), colour='darkred', fill='darkred', alpha=0.1)+
-  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_tmax_03), colour='darkblue', fill='darkblue', alpha=0.1) +
+  geom_density(aes(x=wc2.1_2.5m_tmax_03, weight=cases/sum(cases, na.rm=T)), colour='darkred', fill='darkred', alpha=0.1)+
+  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_tmax_03, weight=pop/sum(pop, na.rm=T)), colour='darkblue', fill='darkblue', alpha=0.1) +
   theme_minimal() + 
-  ylim(c(0, 0.09)) +
   xlab('Max Temperature (C)') +
   ylab('Density')
 
 ubb3 = ggplot(cv_ex %>% filter(date == last_day - 28) %>% filter(!is.na(pop))) +
-  geom_density(aes(x=wc2.1_2.5m_tmax_03), colour='darkred', fill='darkred', alpha=0.1)+
-  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_tmax_03), colour='darkblue', fill='darkblue', alpha=0.1) +
+  geom_density(aes(x=wc2.1_2.5m_tmax_03, weight=cases/sum(cases, na.rm=T)), colour='darkred', fill='darkred', alpha=0.1)+
+  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_tmax_03, weight=pop/sum(pop, na.rm=T)), colour='darkblue', fill='darkblue', alpha=0.1) +
   theme_minimal() +
-  ylim(c(0, 0.09)) +
   xlab('Max Temperature (C)') +
   ylab('Density')
 
 
 uc1 = ggplot(cv_ex %>% filter(date == last_day) %>% filter(!is.na(pop))) +
-  geom_density(aes(x=wc2.1_2.5m_srad_03), colour='darkred', fill='darkred', alpha=0.1)+
-  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_srad_03), colour='darkblue', fill='darkblue', alpha=0.1) +
+  geom_density(aes(x=wc2.1_2.5m_srad_03, weight=cases/sum(cases, na.rm=T)), colour='darkred', fill='darkred', alpha=0.1)+
+  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_srad_03, weight=pop/sum(pop, na.rm=T)), colour='darkblue', fill='darkblue', alpha=0.1) +
   theme_minimal() + 
-  ylim(c(0, 0.0004)) +
   xlab('Solar Radiation (kJ m^-2 / day)') +
   ylab('Density')
 
 
 
 uc2 = ggplot(cv_ex %>% filter(date == last_day - 14) %>% filter(!is.na(pop))) +
-  geom_density(aes(x=wc2.1_2.5m_srad_03), colour='darkred', fill='darkred', alpha=0.1)+
-  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_srad_03), colour='darkblue', fill='darkblue', alpha=0.1) +
+  geom_density(aes(x=wc2.1_2.5m_srad_03, weight=cases/sum(cases, na.rm=T)), colour='darkred', fill='darkred', alpha=0.1)+
+  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_srad_03, weight=pop/sum(pop, na.rm=T)), colour='darkblue', fill='darkblue', alpha=0.1) +
   theme_minimal() + 
-  ylim(c(0, 0.0004)) +
   xlab('Solar Radiation (kJ m^-2 / day)') +
   ylab('Density')
 
 uc3 = ggplot(cv_ex %>% filter(date == last_day - 28) %>% filter(!is.na(pop))) +
-  geom_density(aes(x=wc2.1_2.5m_srad_03), colour='darkred', fill='darkred', alpha=0.1)+
-  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_srad_03), colour='darkblue', fill='darkblue', alpha=0.1) +
+  geom_density(aes(x=wc2.1_2.5m_srad_03, weight=cases/sum(cases, na.rm=T)), colour='darkred', fill='darkred', alpha=0.1)+
+  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_srad_03, weight=pop/sum(pop, na.rm=T)), colour='darkblue', fill='darkblue', alpha=0.1) +
   theme_minimal() + 
-  ylim(c(0, 0.0004)) +
   xlab('Solar Radiation (kJ m^-2 / day)') +
   ylab('Density')
 
 ucc1 = ggplot(cv_ex %>% filter(date == last_day) %>% filter(!is.na(pop))) +
-  geom_density(aes(x=wc2.1_2.5m_prec_03), colour='darkred', fill='darkred', alpha=0.1)+
-  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_prec_03), colour='darkblue', fill='darkblue', alpha=0.1) +
+  geom_density(aes(x=wc2.1_2.5m_prec_03, weight=cases/sum(cases, na.rm=T)), colour='darkred', fill='darkred', alpha=0.1)+
+  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_prec_03, weight=pop/sum(pop, na.rm=T)), colour='darkblue', fill='darkblue', alpha=0.1) +
   theme_minimal() + 
-  ylim(c(0, 0.015)) +
   xlab('Precipitation (mm)') +
   ylab('Density')
 
 
 
 ucc2 = ggplot(cv_ex %>% filter(date == last_day - 14) %>% filter(!is.na(pop))) +
-  geom_density(aes(x=wc2.1_2.5m_prec_03), colour='darkred', fill='darkred', alpha=0.1)+
-  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_prec_03), colour='darkblue', fill='darkblue', alpha=0.1) +
+  geom_density(aes(x=wc2.1_2.5m_prec_03, weight=cases/sum(cases, na.rm=T)), colour='darkred', fill='darkred', alpha=0.1)+
+  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_prec_03, weight=pop/sum(pop, na.rm=T)), colour='darkblue', fill='darkblue', alpha=0.1) +
   theme_minimal() + 
-  ylim(c(0, 0.015)) +
   xlab('Precipitation (mm)') +
   ylab('Density')
 
 ucc3 = ggplot(cv_ex %>% filter(date == last_day - 28) %>% filter(!is.na(pop))) +
-  geom_density(aes(x=wc2.1_2.5m_prec_03), colour='darkred', fill='darkred', alpha=0.1)+
-  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_prec_03), colour='darkblue', fill='darkblue', alpha=0.1) +
+  geom_density(aes(x=wc2.1_2.5m_prec_03, weight=cases/sum(cases, na.rm=T)), colour='darkred', fill='darkred', alpha=0.1)+
+  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_prec_03, weight=pop/sum(pop, na.rm=T)), colour='darkblue', fill='darkblue', alpha=0.1) +
   theme_minimal() + 
-  ylim(c(0, 0.015)) +  
   xlab('Precipitation (mm)') +
   ylab('Density')
 
 
 ucd1 = ggplot(cv_ex %>% filter(date == last_day) %>% filter(!is.na(pop))) +
-  geom_density(aes(x=wc2.1_2.5m_wind_03), colour='darkred', fill='darkred', alpha=0.1)+
-  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_wind_03), colour='darkblue', fill='darkblue', alpha=0.1) +
+  geom_density(aes(x=wc2.1_2.5m_wind_03, weight=cases/sum(cases, na.rm=T)), colour='darkred', fill='darkred', alpha=0.1)+
+  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_wind_03, weight=pop/sum(pop, na.rm=T)), colour='darkblue', fill='darkblue', alpha=0.1) +
   theme_minimal() + 
-  ylim(c(0, 0.75)) +
   xlab('Wind Speed (m/s)') +
   ylab('Density')
 
 
 
 ucd2 = ggplot(cv_ex %>% filter(date == last_day - 14) %>% filter(!is.na(pop))) +
-  geom_density(aes(x=wc2.1_2.5m_wind_03), colour='darkred', fill='darkred', alpha=0.1)+
-  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_wind_03), colour='darkblue', fill='darkblue', alpha=0.1) +
+  geom_density(aes(x=wc2.1_2.5m_wind_03, weight=cases/sum(cases, na.rm=T)), colour='darkred', fill='darkred', alpha=0.1)+
+  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_wind_03, weight=pop/sum(pop, na.rm=T)), colour='darkblue', fill='darkblue', alpha=0.1) +
   theme_minimal() + 
-  ylim(c(0, 0.75)) +
   xlab('Wind Speed (m/s)') +
   ylab('Density')
 
 ucd3 = ggplot(cv_ex %>% filter(date == last_day - 28) %>% filter(!is.na(pop))) +
-  geom_density(aes(x=wc2.1_2.5m_wind_03), colour='darkred', fill='darkred', alpha=0.1)+
-  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_wind_03), colour='darkblue', fill='darkblue', alpha=0.1) +
+  geom_density(aes(x=wc2.1_2.5m_wind_03, weight=cases/sum(cases, na.rm=T)), colour='darkred', fill='darkred', alpha=0.1)+
+  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_wind_03, weight=pop/sum(pop, na.rm=T)), colour='darkblue', fill='darkblue', alpha=0.1) +
   theme_minimal() + 
-  ylim(c(0, 0.75)) +
   xlab('Wind Speed (m/s)') +
   ylab('Density')
 
 
 ud1 = ggplot(cv_ex %>% filter(date == last_day) %>% filter(!is.na(pop))) +
-  geom_density(aes(x=wc2.1_2.5m_vapr_03), colour='darkred', fill='darkred', alpha=0.1)+
-  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_vapr_03), colour='darkblue', fill='darkblue', alpha=0.1) +
+  geom_density(aes(x=wc2.1_2.5m_vapr_03, weight=cases/sum(cases, na.rm=T)), colour='darkred', fill='darkred', alpha=0.1)+
+  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_vapr_03, weight=pop/sum(pop, na.rm=T)), colour='darkblue', fill='darkblue', alpha=0.1) +
   theme_minimal() + 
-  ylim(c(0, 2.5)) +
   xlab('Water Vapor Pressure (kPa)') +
   ylab('Density')
 
 
 
 ud2 = ggplot(cv_ex %>% filter(date == last_day - 14) %>% filter(!is.na(pop))) +
-  geom_density(aes(x=wc2.1_2.5m_vapr_03), colour='darkred', fill='darkred', alpha=0.1)+
-  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_vapr_03), colour='darkblue', fill='darkblue', alpha=0.1) +
+  geom_density(aes(x=wc2.1_2.5m_vapr_03, weight=cases/sum(cases, na.rm=T)), colour='darkred', fill='darkred', alpha=0.1)+
+  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_vapr_03, weight=pop/sum(pop, na.rm=T)), colour='darkblue', fill='darkblue', alpha=0.1) +
   theme_minimal() + 
-  ylim(c(0, 2.5)) +
   xlab('Water Vapor Pressure (kPa)') +
   ylab('Density')
 
 ud3 = ggplot(cv_ex %>% filter(date == last_day - 28) %>% filter(!is.na(pop))) +
-  geom_density(aes(x=wc2.1_2.5m_vapr_03), colour='darkred', fill='darkred', alpha=0.1)+
-  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_vapr_03), colour='darkblue', fill='darkblue', alpha=0.1) +
+  geom_density(aes(x=wc2.1_2.5m_vapr_03, weight=cases/sum(cases, na.rm=T)), colour='darkred', fill='darkred', alpha=0.1)+
+  geom_density(data=all_ex2, aes(x=wc2.1_2.5m_vapr_03, weight=pop/sum(pop, na.rm=T)), colour='darkblue', fill='darkblue', alpha=0.1) +
   theme_minimal() + 
-  ylim(c(0, 2.5)) +
   xlab('Water Vapor Pressure (kPa)') +
   ylab('Density')
 
@@ -602,62 +581,3 @@ ucp = plot_grid(ua3, ua2, ua1,
 ggsave(ucp, file='FigureS1.png', height=12, width=9, dpi=300)
 ggsave(ucp, file='FigureS1.pdf', height=12, width=9, dpi=300)
 
-
-# ## coninue the embarassing lack of loops here
-# # more lines of copied code to extract densities from the graphs above and do KS tests
-# 
-# stat_coll = data.frame(var=character(), 
-#                        w.testp=numeric(), 
-#                        w.testp.adjust = numeric(), 
-#                        w.test_stat=numeric(), 
-#                        KSp = numeric(), 
-#                        KSp.adjust = numeric(), 
-#                        KStest_stat=numeric(),
-#                        scv2.n = numeric(), 
-#                        pop.n=numeric(), 
-#                        stringsAsFactors = F)
-# 
-# #create vector weighted of ggplots
-# scaled_plots = list(a3,  
-#                  bb3, 
-#                  b3,  
-#                  cc3, 
-#                  c3,  
-#                  cd3, 
-#                  d3)
-# scaled_varnames = c('tavg',
-#                     'tmax',
-#                     'tmin',
-#                     'prec',
-#                     'srad',
-#                     'wind',
-#                     'vapr')
-#   
-# 
-# #start loop
-# for(i in 1:length(scaled_plots)) {
-#   pa1 = ggplot_build(scaled_plots[[i]])
-#   k.test = ks.test(pa1$data[[1]]$density, pa1$data[[2]]$density)
-#   w.test = wilcox.test(pa1$data[[1]]$density, pa1$data[[2]]$density, paired =
-#                          F)
-#   p.adj = p.adjust(w.test$p.value,
-#                    method = 'holm',
-#                    n = ncol(cv_extr_pres))
-#   ksp.adj = p.adjust(k.test$p.value,
-#                      method = 'holm',
-#                      n = ncol(cv_extr_pres))
-#   
-#   
-#   stat_coll[i,] = c(
-#     scaled_varnames[i],
-#     w.test$p.value,
-#     p.adj,
-#     w.test$statistic,
-#     k.test$p.value,
-#     ksp.adj,
-#     k.test$statistic,
-#     nrow(cv_new),
-#     nrow(all_ex2)
-#   )
-# }
-# write.table(stat_coll, file='scaled_stats.csv', sep=',')
