@@ -158,8 +158,7 @@ pop_today = cv_new %>% filter(date==last_day) %>% filter(pop < 8000000)
   theme_minimal() +
   theme(legend.position = 'none') +
   xlab('Human Population (millions)') +
-  ylab('SARS-CoV2 Cases') +
-  ggtitle("Case Count and Locality Population")
+  ylab('SARS-CoV2 Cases') 
 )
 
 (pop_scale = ggplot(data=pop_today) +
@@ -167,8 +166,7 @@ pop_today = cv_new %>% filter(date==last_day) %>% filter(pop < 8000000)
     theme_minimal() +
     theme(legend.position = 'none') +
     xlab('Human Population (millions)') +
-    ylab('SARS-CoV2 Cases / Total Human Population') +
-    ggtitle("Case Rate (per capita) and Locality Population")
+    ylab('Population Scaled Cases') 
 )
 
 pop_map = plot_grid(pop_raw, pop_scale, nrow=2, ncol=1, labels='AUTO')
