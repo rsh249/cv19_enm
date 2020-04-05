@@ -22,7 +22,7 @@ occ = cv_ex %>%
   filter(date == last_day) %>%
   group_by(county, V5, V6) %>% 
   mutate(scale=cases/pop)
-occ$scale = occ$scale/sum(occ$scale, na.rm=T)*100000
+occ$scale = occ$scale/sum(occ$scale, na.rm=T)*50000
 occ2 = occ %>% 
   filter(!is.na(scale)) %>%
   expand(count = seq(1:(scale)))
