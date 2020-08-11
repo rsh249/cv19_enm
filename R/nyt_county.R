@@ -260,7 +260,7 @@ bb1 = ggplot(cv_ex %>% filter(date == last_day) %>% filter(!is.na(pop))) +
   geom_density(aes(x=wc2.1_2.5m_tmax_03, weight=(cases/pop)/sum(cases/pop)), colour='darkred', fill='darkred', alpha=0.1)+
   geom_density(data=all_ex2, aes(x=wc2.1_2.5m_tmax_03, weight=pop/sum(pop)), colour='darkblue', fill='darkblue', alpha=0.1) +
   theme_minimal() + 
-  ylim(c(0, 0.11)) +
+  ylim(c(0, 0.15)) +
   xlab('Max Temparature (C)') +
   ylab('Density')
 
@@ -270,7 +270,7 @@ bb2 = ggplot(cv_ex %>% filter(date == last_day - 14) %>% filter(!is.na(pop))) +
   geom_density(aes(x=wc2.1_2.5m_tmax_03, weight=(cases/pop)/sum(cases/pop)), colour='darkred', fill='darkred', alpha=0.1)+
   geom_density(data=all_ex2, aes(x=wc2.1_2.5m_tmax_03, weight=pop/sum(pop)), colour='darkblue', fill='darkblue', alpha=0.1) +
   theme_minimal() + 
-  ylim(c(0, 0.11)) +
+  ylim(c(0, 0.15)) +
   xlab('Max Temperature (C)') +
   ylab('Density')
 
@@ -278,7 +278,7 @@ bb3 = ggplot(cv_ex %>% filter(date == last_day - 28) %>% filter(!is.na(pop))) +
   geom_density(aes(x=wc2.1_2.5m_tmax_03, weight=(cases/pop)/sum(cases/pop)), colour='darkred', fill='darkred', alpha=0.1)+
   geom_density(data=all_ex2, aes(x=wc2.1_2.5m_tmax_03, weight=pop/sum(pop)), colour='darkblue', fill='darkblue', alpha=0.1) +
   theme_minimal() +
-  ylim(c(0, 0.11)) +
+  ylim(c(0, 0.15)) +
   xlab('Max Temperature (C)') +
   ylab('Density')
 
