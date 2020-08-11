@@ -51,8 +51,13 @@ set.eval = ENMevaluate(
 
 write.csv(set.eval@results, file ='ENMeval_results.csv')
 
+best = set.eval@results %>%
+  filter(avg.test.AUC == max(avg.test.AUC)) %>%
+  filter(AICc == min(AICc)) %>%
+  dplyr::select(settings) 
+best = best[1,1]
+#best = which(set.eval@results[, 'AICc'] == min(na.omit(set.eval@results[, 'AICc'])))
 
-best = which(set.eval@results[, 'AICc'] == min(na.omit(set.eval@results[, 'AICc'])))
 ev.set <-
   evaluate(occ[, c('V6', 'V5')], set.eval@bg.pts, set.eval@models[[best]], march_clim_sub)
 thr.set <- threshold(ev.set)

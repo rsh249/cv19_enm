@@ -1,20 +1,20 @@
 pearson raw
-c(t = 24.107911142418)
-c(df = 1889)
-3.50154647877101e-112
-c(cor = 0.485058680651573)
+c(t = 24.0503453673637)
+c(df = 1880)
+1.17509604285381e-111
+c(cor = 0.48505764681528)
 c(correlation = 0)
 two.sided
 Pearson's product-moment correlation
 pop_today$cases and pop_today$pop
-c(0.449817115535242, 0.51879211610881)
+c(0.449729966401396, 0.518869981572654)
 
 
 spearman raw
-c(S = 280316720.78986)
+c(S = 276686525.486757)
 NULL
 0
-c(rho = 0.751271363375352)
+c(rho = 0.750953452564682)
 c(rho = 0)
 two.sided
 Spearman's rank correlation rho
@@ -22,22 +22,22 @@ pop_today$cases and pop_today$pop
 
 
 pearson percap
-c(t = 8.18940913828613)
-c(df = 1889)
-4.77790617695337e-16
-c(cor = 0.185165797401735)
+c(t = 8.15751424758838)
+c(df = 1880)
+6.18550733404383e-16
+c(cor = 0.184895189721717)
 c(correlation = 0)
 two.sided
 Pearson's product-moment correlation
 pop_today$cases/pop_today$pop and pop_today$pop
-c(0.141268157246076, 0.228336704766594)
+c(0.140887782785736, 0.228173379164126)
 
 
 spearman percap
-c(S = 1070963224.90335)
+c(S = 1054406996.88891)
 NULL
-0.030615366245591
-c(rho = 0.0497205373451858)
+0.0271627887673188
+c(rho = 0.050924428991057)
 c(rho = 0)
 two.sided
 Spearman's rank correlation rho
