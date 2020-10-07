@@ -186,7 +186,7 @@ colnames(cv_df) <- c("Suitability", "x", "y")
                          na.value='black',
                          limits=c(0,1)) +
     theme(panel.background = element_rect(fill='black')) +
-    labs(x="Longitude", y="Latitude", title='SARS-CoV2 Distribution Model')
+    labs(x="Longitude", y="Latitude", title='SARS-CoV-2 Distribution Model')
 
 )
 

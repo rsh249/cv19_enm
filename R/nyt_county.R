@@ -158,7 +158,7 @@ pop_today = cv_new %>% filter(date==last_day) %>% filter(pop < 8000000)
   theme_minimal() +
   theme(legend.position = 'none') +
   xlab('Human Population (millions)') +
-  ylab('SARS-CoV2 Cases') 
+  ylab('SARS-CoV-2 Cases') 
 )
 
 (pop_scale = ggplot(data=pop_today) +
